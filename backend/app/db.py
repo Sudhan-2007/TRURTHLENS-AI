@@ -35,11 +35,20 @@ def get_blacklist_collection():
     return db["token_blacklist"]
 
 
+def get_news_collection():
+    if db is None:
+        raise RuntimeError("Database not connected")
+    return db["news_submissions"]
+
+
 async def init_indexes() -> None:
     users = get_users_collection()
     await users.create_index("email", unique=True)
     blacklist = get_blacklist_collection()
     await blacklist.create_index("exp", expireAfterSeconds=0)
+    news = get_news_collection()
+    await news.create_index("submission_id", unique=True)
+    await news.create_index("user_id")
 
 
 def close_db() -> None:

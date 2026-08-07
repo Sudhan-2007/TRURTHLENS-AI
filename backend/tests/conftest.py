@@ -8,10 +8,12 @@ from app.db import (
     close_db,
     connect_db,
     get_blacklist_collection,
+    get_news_collection,
     get_users_collection,
     init_indexes,
 )
 from app.main import app
+from app.middleware.rate_limit import clear_rate_limit_buckets
 
 settings.MONGODB_DB = "truthlens_test"
 
@@ -27,7 +29,7 @@ async def setup_db():
 
 @pytest.fixture
 async def client():
-    transport = httpx.ASGITransport(app=app)
+    transport = httpx.ASGITransport(app=app, raise_app_exceptions=False)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as c:
         yield c
 
@@ -36,6 +38,8 @@ async def client():
 async def clean_db():
     await get_users_collection().delete_many({})
     await get_blacklist_collection().delete_many({})
+    await get_news_collection().delete_many({})
+    clear_rate_limit_buckets()
     yield
 
 

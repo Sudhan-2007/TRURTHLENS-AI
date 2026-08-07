@@ -31,4 +31,8 @@ export const api = {
   logout: () => request('/api/auth/logout', { method: 'POST' }),
   me: () => request('/api/users/me'),
   updateMe: (payload) => request('/api/users/me', { method: 'PUT', body: JSON.stringify(payload) }),
+  submitText: (content) => request('/api/news/submit', { method: 'POST', body: JSON.stringify({ input_type: 'text', content }) }),
+  submitUrl: (url) => request('/api/news/submit-url', { method: 'POST', body: JSON.stringify({ input_type: 'url', url }) }),
+  getSubmission: (submissionId) => request(`/api/news/${submissionId}`),
+  deleteSubmission: (submissionId) => request(`/api/news/${submissionId}`, { method: 'DELETE' }),
 }

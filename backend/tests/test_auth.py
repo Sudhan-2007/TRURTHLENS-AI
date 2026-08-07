@@ -36,7 +36,7 @@ async def test_invalid_email_registration(client):
 async def test_weak_password_registration(client):
     res = await register_user(client, password="short")
     assert res.status_code == 422
-    res = await register_user(client, password="onlyletters")
+    res = await register_user(client, password="!!!!!!!!")
     assert res.status_code == 422
 
 

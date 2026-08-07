@@ -32,74 +32,70 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-        <h1 className="text-2xl font-bold text-center">Create account</h1>
-        <p className="mt-1 text-sm text-slate-500 text-center">Join TruthLens AI</p>
+    <div className="flex min-h-[80vh] items-center justify-center px-4 py-16">
+      <div className="card w-full max-w-sm p-8">
+        <h1 className="text-center text-2xl font-bold text-slate-900">Create account</h1>
+        <p className="mt-1 text-center text-sm text-slate-500">Join TruthLens AI</p>
 
-        {error && (
-          <p className="mt-4 text-sm bg-red-50 text-red-700 border border-red-200 rounded-lg px-3 py-2">
-            {error}
-          </p>
-        )}
+        {error && <p className="alert-error">{error}</p>}
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700">Name</label>
+            <label className="label" htmlFor="name">Name</label>
             <input
+              id="name"
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input"
               placeholder="Your name"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Email</label>
+            <label className="label" htmlFor="email">Email</label>
             <input
+              id="email"
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input"
               placeholder="you@example.com"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Password</label>
+            <label className="label" htmlFor="password">Password</label>
             <input
+              id="password"
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="At least 8 chars, letters + numbers"
+              className="input"
+              placeholder="At least 8 characters"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Confirm password</label>
+            <label className="label" htmlFor="confirm">Confirm password</label>
             <input
+              id="confirm"
               type="password"
               required
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input"
               placeholder="Repeat password"
             />
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
-          >
+          <button type="submit" disabled={loading} className="btn-primary w-full py-2.5">
             {loading ? 'Creating...' : 'Create account'}
           </button>
         </form>
 
-        <p className="mt-4 text-sm text-center text-slate-500">
+        <p className="mt-4 text-center text-sm text-slate-500">
           Already have an account?{' '}
-          <Link to="/login" className="text-blue-600 font-medium hover:underline">
+          <Link to="/login" className="font-medium text-blue-600 hover:underline">
             Sign in
           </Link>
         </p>

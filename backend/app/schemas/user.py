@@ -20,8 +20,8 @@ class UserRegister(BaseModel):
     def validate_password(cls, value: str) -> str:
         if len(value) < 8:
             raise ValueError("Password must be at least 8 characters long")
-        if not re.search(r"[A-Za-z]", value) or not re.search(r"\d", value):
-            raise ValueError("Password must contain at least one letter and one number")
+        if not re.search(r"[A-Za-z0-9]", value):
+            raise ValueError("Password must contain at least one letter or number")
         return value
 
 
@@ -37,8 +37,8 @@ class UserUpdate(BaseModel):
             return value
         if len(value) < 8:
             raise ValueError("Password must be at least 8 characters long")
-        if not re.search(r"[A-Za-z]", value) or not re.search(r"\d", value):
-            raise ValueError("Password must contain at least one letter and one number")
+        if not re.search(r"[A-Za-z0-9]", value):
+            raise ValueError("Password must contain at least one letter or number")
         return value
 
 
