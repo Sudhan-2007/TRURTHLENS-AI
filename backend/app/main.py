@@ -3,13 +3,16 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .api import auth as auth_router
+from .api import users as users_router
 from .config import settings
-from .db import connect_db, close_db
+from .db import close_db, connect_db, init_indexes
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     connect_db()
+    await init_indexes()
     yield
     close_db()
 
@@ -50,3 +53,7 @@ async def health_db():
         "connected": connected,
         "mode": settings.db_mode,
     }
+
+
+app.include_router(auth_router.router)
+app.include_router(users_router.router)

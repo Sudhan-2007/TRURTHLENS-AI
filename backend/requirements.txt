@@ -4,3 +4,11 @@ pymongo==4.17.0
 motor==3.7.1
 python-dotenv==1.2.2
 pydantic-settings==2.15.0
+bcrypt==5.0.0
+PyJWT==2.13.0
+email-validator==2.3.0
+
+# Testing
+pytest==9.1.1
+pytest-asyncio==1.4.0
+httpx==0.28.1

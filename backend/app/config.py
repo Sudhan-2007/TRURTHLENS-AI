@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     MONGODB_PLACEHOLDER: str = "mongodb+srv://<user>:<password>@<cluster-url>"
 
     JWT_SECRET: str = "change-me"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     CORS_ORIGINS: str = "http://localhost:5173"
 
     model_config = SettingsConfigDict(

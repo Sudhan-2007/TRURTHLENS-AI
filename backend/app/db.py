@@ -23,6 +23,25 @@ async def ping_db() -> bool:
         return False
 
 
+def get_users_collection():
+    if db is None:
+        raise RuntimeError("Database not connected")
+    return db["users"]
+
+
+def get_blacklist_collection():
+    if db is None:
+        raise RuntimeError("Database not connected")
+    return db["token_blacklist"]
+
+
+async def init_indexes() -> None:
+    users = get_users_collection()
+    await users.create_index("email", unique=True)
+    blacklist = get_blacklist_collection()
+    await blacklist.create_index("exp", expireAfterSeconds=0)
+
+
 def close_db() -> None:
     global client, db
     if client is not None:
