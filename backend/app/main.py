@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -6,13 +7,22 @@ from fastapi.responses import JSONResponse
 
 from .api import ai as ai_router
 from .api import auth as auth_router
+from .api import dashboard as dashboard_router
+from .api import explanation as explanation_router
+from .api import history as history_router
 from .api import news as news_router
+from .api import trust_score as trust_score_router
 from .api import users as users_router
 from .api import verification as verification_router
 from .config import settings
 from .db import close_db, connect_db, init_indexes
+from .logging_config import configure_logging
 from .seed import seed_all
 from .services.source_service import refresh_approved_domains
+
+configure_logging()
+
+logger = logging.getLogger("truthlens.main")
 
 MAX_REQUEST_BODY_BYTES = 64 * 1024
 
@@ -29,8 +39,10 @@ async def lifespan(app: FastAPI):
         await refresh_approved_domains()
     except Exception:
         pass
+    logger.info("startup complete db_mode=%s db=%s", settings.db_mode, settings.MONGODB_DB)
     yield
     close_db()
+    logger.info("shutdown complete")
 
 
 app = FastAPI(
@@ -89,3 +101,7 @@ app.include_router(news_router.router)
 app.include_router(ai_router.router)
 app.include_router(verification_router.router)
 app.include_router(verification_router.sources_router)
+app.include_router(trust_score_router.router)
+app.include_router(explanation_router.router)
+app.include_router(dashboard_router.router)
+app.include_router(history_router.router)

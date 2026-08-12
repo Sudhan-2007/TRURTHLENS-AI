@@ -18,7 +18,7 @@ def validate_text(content: str) -> str:
         )
     if len(content) > TEXT_MAX_LENGTH:
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
             detail=f"Content must not exceed {TEXT_MAX_LENGTH} characters",
         )
     return content
@@ -30,7 +30,7 @@ def validate_url(url: str) -> str:
         raise ValueError("URL is required")
     if len(url) > URL_MAX_LENGTH:
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
             detail=f"URL must not exceed {URL_MAX_LENGTH} characters",
         )
     parsed = urlparse(url)

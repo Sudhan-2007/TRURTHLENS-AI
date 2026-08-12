@@ -65,6 +65,18 @@ def get_verification_results_collection():
     return db["verification_results"]
 
 
+def get_trust_scores_collection():
+    if db is None:
+        raise RuntimeError("Database not connected")
+    return db["trust_scores"]
+
+
+def get_ai_explanations_collection():
+    if db is None:
+        raise RuntimeError("Database not connected")
+    return db["ai_explanations"]
+
+
 async def init_indexes() -> None:
     users = get_users_collection()
     await users.create_index("email", unique=True)
@@ -82,6 +94,10 @@ async def init_indexes() -> None:
     await evidence.create_index("submission_id")
     results = get_verification_results_collection()
     await results.create_index("submission_id", unique=True)
+    trust_scores = get_trust_scores_collection()
+    await trust_scores.create_index("submission_id", unique=True)
+    explanations = get_ai_explanations_collection()
+    await explanations.create_index("submission_id", unique=True)
 
 
 def close_db() -> None:

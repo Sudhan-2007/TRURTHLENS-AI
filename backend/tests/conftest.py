@@ -7,10 +7,12 @@ from app.config import settings
 from app.db import (
     close_db,
     connect_db,
+    get_ai_explanations_collection,
     get_ai_predictions_collection,
     get_blacklist_collection,
     get_news_collection,
     get_official_sources_collection,
+    get_trust_scores_collection,
     get_users_collection,
     get_verification_evidence_collection,
     get_verification_results_collection,
@@ -49,6 +51,8 @@ async def clean_db():
     await get_official_sources_collection().delete_many({})
     await get_verification_evidence_collection().delete_many({})
     await get_verification_results_collection().delete_many({})
+    await get_trust_scores_collection().delete_many({})
+    await get_ai_explanations_collection().delete_many({})
     await seed_all()
     await refresh_approved_domains()
     clear_rate_limit_buckets()

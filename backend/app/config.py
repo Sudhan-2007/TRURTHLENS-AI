@@ -1,3 +1,4 @@
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -30,6 +31,17 @@ class Settings(BaseSettings):
     @property
     def db_mode(self) -> str:
         return "atlas" if self.is_atlas_configured else "local"
+
+    @model_validator(mode="after")
+    def _require_strong_secret_outside_debug(self) -> "Settings":
+        if not self.DEBUG and (
+            self.JWT_SECRET == "change-me" or len(self.JWT_SECRET) < 32
+        ):
+            raise ValueError(
+                "JWT_SECRET must be set to a strong random value (>=32 chars) "
+                "when DEBUG is false"
+            )
+        return self
 
 
 settings = Settings()

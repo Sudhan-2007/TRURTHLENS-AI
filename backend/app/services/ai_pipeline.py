@@ -1,7 +1,11 @@
+import logging
+
 from ..models.news import utcnow
 from ..repositories import news_repository
 from ..schemas.news import NewsStatus
 from . import ai_service
+
+logger = logging.getLogger("truthlens.pipeline")
 
 
 async def run_pipeline(submission_id: str) -> None:
@@ -27,5 +31,6 @@ async def run_pipeline(submission_id: str) -> None:
             verification_result=result,
         )
     except Exception:
+        logger.exception("pipeline failed submission=%s", submission_id)
         await news_repository.update_status(submission_id, NewsStatus.FAILED.value)
         raise

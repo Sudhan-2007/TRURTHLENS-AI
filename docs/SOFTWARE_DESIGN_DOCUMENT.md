@@ -753,6 +753,15 @@ Security mechanisms should include:
 
 User data should not be exposed unnecessarily.
 
+### Implemented Controls (Phase 9)
+
+* **Hardened configuration**: `app/config.py` refuses to start outside debug mode unless `JWT_SECRET` is a strong value (>= 32 chars), preventing production deployments with the default secret.
+* **Request body limit**: an HTTP middleware rejects bodies over 64 KB with `413` before any processing.
+* **Authorization**: all user data endpoints enforce ownership (403 for cross-user access); admin-only endpoints (user listing, role changes, official-source registration, admin dashboards) enforce role checks.
+* **Rate limiting**: per-user sliding-window buckets — 10/min for submissions, 30/min for analytics — returning `429` when exceeded.
+* **Input validation**: enum/size bounds enforced on query parameters (422/400), keeping search and filter parameters literal (no injection).
+* **No data leakage**: password hashes and internal error details are never included in API responses; tests assert their absence.
+
 ---
 
 # 19. Error Handling
@@ -847,6 +856,13 @@ The system should record operational events such as:
 
 Sensitive information should not be unnecessarily included in logs.
 
+### Implemented (Phase 9)
+
+* Structured stdout logging configured in `app/logging_config.py` (timestamp, level, module, message).
+* Security events logged by `app/middleware/auth.py`: invalid/revoked/unknown tokens, deactivated users, denied admin access.
+* Pipeline failures logged with tracebacks by `app/services/ai_pipeline.py` (`logger.exception`).
+* Startup/shutdown events logged by `app/main.py` including the active database mode.
+
 ---
 
 # 24. Testing Strategy
@@ -905,6 +921,30 @@ Use an appropriate labeled dataset and calculate metrics such as:
 * Confusion matrix
 
 The evaluation dataset should be separate from the training data.
+
+### Implemented Test Suites (Phase 9)
+
+The system ships with automated suites covering unit, integration, system/e2e,
+security, and performance testing. Current backend coverage: **143 tests
+passing**; frontend: **7 component tests**.
+
+| Suite | File(s) | Scope |
+| --- | --- | --- |
+| Unit | `tests/test_auth.py`, `test_news.py`, `test_ai.py`, `test_verification.py`, `test_trust_score.py`, `test_explanation.py` | Password hashing, JWT expiry/revocation, validators (413/422), score math and trust-level boundaries, AI confidence mapping, evidence/verification logic |
+| Integration | `test_trust_score.py`, `test_explanation.py`, `test_history.py`, `test_dashboard.py` | Service-orchestrator pipelines against a real Mongo test DB (`truthlens_test`), idempotent runs, persistence via GET endpoints |
+| Security | `tests/test_security.py` | Unauthenticated access matrix, cross-user (IDOR) denial across modules, admin RBAC, query validation/injection, oversized-body 413, analytics rate-limit 429, no hash/internal-error leakage, production secret guard |
+| E2E / Acceptance | `tests/test_e2e.py` | TC-001…TC-012 end-to-end workflow (register → login → submit → AI → verify → score → explain → history → dashboard → admin RBAC → cross-user isolation) |
+| Performance | `tests/test_performance.py` | Latency smoke budgets for health, auth, submit pipeline, and history queries |
+| Frontend | `src/components/__tests__/*.test.jsx` (Vitest + Testing Library) | `TrustScore` empty/scored/interaction states, `StatsCard` rendering |
+
+### Quality Gates (Phase 9)
+
+1. `cd backend && .venv\Scripts\python.exe -m pytest -q` — all backend tests pass.
+2. `cd frontend && npm run test` — all component tests pass.
+3. `cd frontend && npm run build` — production build succeeds.
+4. `cd frontend && npm run lint` — 0 warnings / 0 errors.
+5. No test may depend on external network services; MongoDB tests run against the local test database and are fully seeded/cleaned per test.
+6. Rate-limited endpoints (10/min submit, 30/min analytics) are enforced and covered by tests.
 
 ---
 
@@ -1026,6 +1066,14 @@ Explainable Results
 The most important design principle is transparency. TruthLens AI should help users understand **why information may be trustworthy or suspicious**, while allowing users to inspect the evidence themselves.
 
 The ultimate objective is not to make users blindly trust TruthLens AI, but to encourage users to **verify information before believing or sharing it**.
+
+### Phase 9 Completion Status
+
+Phases 1–9 are complete. Automated unit, integration, security, e2e
+(TC-001…TC-012), and performance tests pass, the frontend builds and lints
+cleanly, security hardening controls are validated by tests, and operational
+logging is in place. **The system is ready for Phase 10: Deployment and
+Monitoring.**
 
 ### Core Principle
 

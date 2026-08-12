@@ -1,25 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api/client'
-
-const statusStyles = {
-  submitted: 'bg-slate-100 text-slate-600',
-  processing: 'bg-amber-100 text-amber-700',
-  completed: 'bg-green-100 text-green-700',
-  failed: 'bg-red-100 text-red-700',
-}
-
-const verdictStyles = {
-  REAL: 'bg-green-600 text-white',
-  FAKE: 'bg-red-600 text-white',
-}
-
-const verificationStyles = {
-  SUPPORTED: 'bg-green-100 text-green-700 border-green-200',
-  CONTRADICTED: 'bg-red-100 text-red-700 border-red-200',
-  PARTIALLY_SUPPORTED: 'bg-amber-100 text-amber-700 border-amber-200',
-  UNVERIFIED: 'bg-slate-100 text-slate-600 border-slate-200',
-}
+import { statusStyles, verificationStyles, verdictStyles } from '../constants/styles'
+import EvidenceList from '../components/result/EvidenceList'
+import Explanation from '../components/result/Explanation'
+import TrustScore from '../components/result/TrustScore'
 
 const verificationBarStyles = {
   SUPPORTED: 'bg-green-500',
@@ -85,7 +70,7 @@ function VerificationCard({ verification, evidence, onRun, running }) {
   const isVerified = status !== 'UNVERIFIED'
 
   return (
-    <div className={`rounded-xl border p-5 ${isVerified ? 'border-slate-200' : 'border-slate-200'}`}>
+    <div className="rounded-xl border border-slate-200 p-5">
       <div className="flex items-center justify-between">
         <span className={`rounded-full border px-4 py-1.5 text-sm font-bold ${verificationStyles[status]}`}>
           {status}
@@ -119,29 +104,7 @@ function VerificationCard({ verification, evidence, onRun, running }) {
       </div>
 
       {isVerified ? (
-        <div className="mt-3 space-y-2">
-          {evidence.map((item, i) => (
-            <div key={i} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-              <div className="flex items-center justify-between gap-2">
-                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${verificationStyles[item.evidence_status]}`}>
-                  {item.evidence_status}
-                </span>
-                <span className="text-xs font-semibold text-slate-700">
-                  {Math.round(item.similarity_score * 100)}% match
-                </span>
-              </div>
-              <p className="mt-2 text-sm leading-relaxed text-slate-700">{item.evidence_summary}</p>
-              <a
-                href={item.source_url}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-2 inline-block text-xs text-blue-600 hover:underline"
-              >
-                {item.source_name} ({item.source_domain})
-              </a>
-            </div>
-          ))}
-        </div>
+        <EvidenceList items={evidence} />
       ) : (
         <p className="mt-3 rounded-lg bg-slate-50 p-3 text-xs leading-relaxed text-slate-500">
           No trusted evidence matching this claim was found. This does not mean the claim is false —
@@ -159,6 +122,10 @@ export default function Result() {
   const [verification, setVerification] = useState(null)
   const [evidence, setEvidence] = useState([])
   const [verificationLoading, setVerificationLoading] = useState(false)
+  const [trustScore, setTrustScore] = useState(null)
+  const [trustScoreLoading, setTrustScoreLoading] = useState(false)
+  const [explanation, setExplanation] = useState(null)
+  const [explanationLoading, setExplanationLoading] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -177,6 +144,17 @@ export default function Result() {
     }
   }
 
+  async function loadTrustScore() {
+    const data = await api.getTrustScore(submissionId).catch(() => null)
+    setTrustScore(data)
+    return data
+  }
+
+  async function loadExplanation() {
+    const data = await api.getExplanation(submissionId).catch(() => null)
+    setExplanation(data)
+  }
+
   async function handleVerify() {
     setVerificationLoading(true)
     try {
@@ -186,6 +164,30 @@ export default function Result() {
       setError(err.message)
     } finally {
       setVerificationLoading(false)
+    }
+  }
+
+  async function handleTrustScore() {
+    setTrustScoreLoading(true)
+    try {
+      await api.runTrustScore(submissionId)
+      await loadTrustScore()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setTrustScoreLoading(false)
+    }
+  }
+
+  async function handleExplanation() {
+    setExplanationLoading(true)
+    try {
+      await api.runExplanation(submissionId)
+      await loadExplanation()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setExplanationLoading(false)
     }
   }
 
@@ -208,6 +210,10 @@ export default function Result() {
           const ev = await api.getEvidence(submissionId).catch(() => null)
           if (active) setEvidence(ev?.evidence || [])
         }
+        const ts = await api.getTrustScore(submissionId).catch(() => null)
+        if (active) setTrustScore(ts)
+        const ex = await api.getExplanation(submissionId).catch(() => null)
+        if (active) setExplanation(ex)
       } catch (err) {
         if (active) {
           setError(err.message)
@@ -331,6 +337,32 @@ export default function Result() {
                   evidence={evidence}
                   onRun={handleVerify}
                   running={verificationLoading}
+                />
+              </div>
+            </div>
+          )}
+
+          {!isProcessing && (
+            <div>
+              <p className="label">Trust score</p>
+              <div className="mt-1">
+                <TrustScore
+                  score={trustScore}
+                  onRun={handleTrustScore}
+                  running={trustScoreLoading}
+                />
+              </div>
+            </div>
+          )}
+
+          {!isProcessing && (
+            <div>
+              <p className="label">Why this result?</p>
+              <div className="mt-1">
+                <Explanation
+                  explanation={explanation}
+                  onRun={handleExplanation}
+                  running={explanationLoading}
                 />
               </div>
             </div>

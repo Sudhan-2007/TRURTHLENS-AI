@@ -41,4 +41,23 @@ export const api = {
   getVerification: (submissionId) => request(`/api/verification/${submissionId}`),
   getEvidence: (submissionId) => request(`/api/verification/${submissionId}/evidence`),
   listSources: () => request('/api/sources'),
+  runTrustScore: (submissionId) => request(`/api/trust-score/${submissionId}`, { method: 'POST' }),
+  getTrustScore: (submissionId) => request(`/api/trust-score/${submissionId}`),
+  runExplanation: (submissionId) => request(`/api/explanation/${submissionId}`, { method: 'POST' }),
+  getExplanation: (submissionId) => request(`/api/explanation/${submissionId}`),
+  getUserDashboard: () => request('/api/dashboard/user'),
+  getUserStatistics: () => request('/api/dashboard/user/statistics'),
+  getAdminDashboard: () => request('/api/dashboard/admin'),
+  getAdminStatistics: () => request('/api/dashboard/admin/statistics'),
+  getHistory: (params) => {
+    const search = new URLSearchParams()
+    Object.entries(params || {}).forEach(([key, value]) => {
+      if (value !== '' && value !== null && value !== undefined) search.set(key, value)
+    })
+    const qs = search.toString()
+    return request(`/api/history${qs ? `?${qs}` : ''}`)
+  },
+  getHistoryDetail: (submissionId) => request(`/api/history/${submissionId}`),
+  listUsers: () => request('/api/users'),
+  healthDb: () => request('/api/health/db'),
 }
