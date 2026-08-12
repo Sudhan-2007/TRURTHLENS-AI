@@ -41,6 +41,12 @@ export default function Navbar() {
                 Verify news
               </Link>
               <Link
+                to="/history"
+                className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+              >
+                History
+              </Link>
+              <Link
                 to="/profile"
                 className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
               >

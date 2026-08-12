@@ -149,6 +149,28 @@ async def test_delete_another_users_submission(client):
     assert await get_news_collection().find_one({"submission_id": sid}) is not None
 
 
+async def test_history_requires_auth(client):
+    res = await client.get("/api/news/history")
+    assert res.status_code == 401
+
+
+async def test_history_lists_only_own_submissions(client):
+    await register_user(client, name="First", email="first@example.com")
+    headers_a = await auth_headers(client, email="first@example.com")
+    await submit_text(client, headers_a)
+    await submit_url(client, headers_a)
+
+    await register_user(client, name="Second", email="second@example.com")
+    headers_b = await auth_headers(client, email="second@example.com")
+    await submit_text(client, headers_b)
+
+    res = await client.get("/api/news/history", headers=headers_a)
+    assert res.status_code == 200
+    items = res.json()
+    assert len(items) == 2
+    assert all(item["submission_id"].startswith("TL-") for item in items)
+
+
 async def test_database_failure_handling(client, monkeypatch):
     await register_user(client)
     headers = await auth_headers(client)

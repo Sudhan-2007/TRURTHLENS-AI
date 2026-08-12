@@ -41,6 +41,30 @@ def get_news_collection():
     return db["news_submissions"]
 
 
+def get_ai_predictions_collection():
+    if db is None:
+        raise RuntimeError("Database not connected")
+    return db["ai_predictions"]
+
+
+def get_official_sources_collection():
+    if db is None:
+        raise RuntimeError("Database not connected")
+    return db["official_sources"]
+
+
+def get_verification_evidence_collection():
+    if db is None:
+        raise RuntimeError("Database not connected")
+    return db["verification_evidence"]
+
+
+def get_verification_results_collection():
+    if db is None:
+        raise RuntimeError("Database not connected")
+    return db["verification_results"]
+
+
 async def init_indexes() -> None:
     users = get_users_collection()
     await users.create_index("email", unique=True)
@@ -49,6 +73,15 @@ async def init_indexes() -> None:
     news = get_news_collection()
     await news.create_index("submission_id", unique=True)
     await news.create_index("user_id")
+    predictions = get_ai_predictions_collection()
+    await predictions.create_index("submission_id", unique=True)
+    await predictions.create_index("user_id")
+    sources = get_official_sources_collection()
+    await sources.create_index("domain", unique=True)
+    evidence = get_verification_evidence_collection()
+    await evidence.create_index("submission_id")
+    results = get_verification_results_collection()
+    await results.create_index("submission_id", unique=True)
 
 
 def close_db() -> None:

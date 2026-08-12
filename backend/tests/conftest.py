@@ -7,13 +7,19 @@ from app.config import settings
 from app.db import (
     close_db,
     connect_db,
+    get_ai_predictions_collection,
     get_blacklist_collection,
     get_news_collection,
+    get_official_sources_collection,
     get_users_collection,
+    get_verification_evidence_collection,
+    get_verification_results_collection,
     init_indexes,
 )
 from app.main import app
 from app.middleware.rate_limit import clear_rate_limit_buckets
+from app.seed import seed_all
+from app.services.source_service import refresh_approved_domains
 
 settings.MONGODB_DB = "truthlens_test"
 
@@ -39,6 +45,12 @@ async def clean_db():
     await get_users_collection().delete_many({})
     await get_blacklist_collection().delete_many({})
     await get_news_collection().delete_many({})
+    await get_ai_predictions_collection().delete_many({})
+    await get_official_sources_collection().delete_many({})
+    await get_verification_evidence_collection().delete_many({})
+    await get_verification_results_collection().delete_many({})
+    await seed_all()
+    await refresh_approved_domains()
     clear_rate_limit_buckets()
     yield
 

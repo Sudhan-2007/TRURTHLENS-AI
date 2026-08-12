@@ -9,12 +9,185 @@ const statusStyles = {
   failed: 'bg-red-100 text-red-700',
 }
 
+const verdictStyles = {
+  REAL: 'bg-green-600 text-white',
+  FAKE: 'bg-red-600 text-white',
+}
+
+const verificationStyles = {
+  SUPPORTED: 'bg-green-100 text-green-700 border-green-200',
+  CONTRADICTED: 'bg-red-100 text-red-700 border-red-200',
+  PARTIALLY_SUPPORTED: 'bg-amber-100 text-amber-700 border-amber-200',
+  UNVERIFIED: 'bg-slate-100 text-slate-600 border-slate-200',
+}
+
+const verificationBarStyles = {
+  SUPPORTED: 'bg-green-500',
+  CONTRADICTED: 'bg-red-500',
+  PARTIALLY_SUPPORTED: 'bg-amber-500',
+  UNVERIFIED: 'bg-slate-300',
+}
+
+function VerdictCard({ result }) {
+  const verdict = result?.verdict
+  const confidence = result?.confidence ?? 0
+
+  return (
+    <div className={`rounded-xl border p-5 ${verdict === 'REAL' ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+      <div className="flex items-center justify-between">
+        <span className={`rounded-full px-4 py-1.5 text-lg font-bold ${verdictStyles[verdict]}`}>
+          {verdict === 'REAL' ? 'Likely REAL' : 'Likely FAKE'}
+        </span>
+        <span className="text-2xl font-bold text-slate-800">{Math.round(confidence * 100)}%</span>
+      </div>
+
+      <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-slate-200">
+        <div
+          className={`h-full rounded-full ${verdict === 'REAL' ? 'bg-green-500' : 'bg-red-500'}`}
+          style={{ width: `${confidence * 100}%` }}
+        />
+      </div>
+      <p className="mt-1 text-xs text-slate-500">Model confidence</p>
+
+      <p className="mt-3 text-sm leading-relaxed text-slate-700">{result?.summary}</p>
+
+      <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-200 pt-3 text-xs text-slate-500">
+        <p>Model</p>
+        <p>{result?.model_name}</p>
+        <p>Version</p>
+        <p>v{result?.model_version}</p>
+        <p>Analysis time</p>
+        <p>{result?.processing_time_ms} ms</p>
+      </div>
+    </div>
+  )
+}
+
+function VerificationCard({ verification, evidence, onRun, running }) {
+  if (!verification) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-semibold text-slate-700">Official source verification</p>
+          <button onClick={onRun} disabled={running} className="btn-primary px-3 py-1.5 text-xs">
+            {running ? 'Verifying...' : 'Verify against official sources'}
+          </button>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">
+          Cross-check this claim against trusted government, fact-check, and reputable news sources.
+        </p>
+      </div>
+    )
+  }
+
+  const status = verification.verification_status
+  const confidence = verification.verification_confidence ?? 0
+  const isVerified = status !== 'UNVERIFIED'
+
+  return (
+    <div className={`rounded-xl border p-5 ${isVerified ? 'border-slate-200' : 'border-slate-200'}`}>
+      <div className="flex items-center justify-between">
+        <span className={`rounded-full border px-4 py-1.5 text-sm font-bold ${verificationStyles[status]}`}>
+          {status}
+        </span>
+        <span className="text-2xl font-bold text-slate-800">{Math.round(confidence * 100)}%</span>
+      </div>
+
+      <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-slate-200">
+        <div
+          className={`h-full rounded-full ${verificationBarStyles[status]}`}
+          style={{ width: `${Math.min(confidence * 100, 100)}%` }}
+        />
+      </div>
+      <p className="mt-1 text-xs text-slate-500">Verification confidence</p>
+
+      <div className="mt-3 grid grid-cols-3 gap-2 border-t border-slate-200 pt-3 text-center text-xs text-slate-500">
+        <div>
+          <p className="text-base font-bold text-slate-800">{verification.evidence_count}</p>
+          <p>Evidence items</p>
+        </div>
+        <div>
+          <p className="text-base font-bold text-slate-800">{verification.official_source_count}</p>
+          <p>Official sources</p>
+        </div>
+        <div>
+          <p className="text-base font-bold text-slate-800">
+            {Math.round((verification.average_similarity ?? 0) * 100)}%
+          </p>
+          <p>Avg similarity</p>
+        </div>
+      </div>
+
+      {isVerified ? (
+        <div className="mt-3 space-y-2">
+          {evidence.map((item, i) => (
+            <div key={i} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${verificationStyles[item.evidence_status]}`}>
+                  {item.evidence_status}
+                </span>
+                <span className="text-xs font-semibold text-slate-700">
+                  {Math.round(item.similarity_score * 100)}% match
+                </span>
+              </div>
+              <p className="mt-2 text-sm leading-relaxed text-slate-700">{item.evidence_summary}</p>
+              <a
+                href={item.source_url}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 inline-block text-xs text-blue-600 hover:underline"
+              >
+                {item.source_name} ({item.source_domain})
+              </a>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-3 rounded-lg bg-slate-50 p-3 text-xs leading-relaxed text-slate-500">
+          No trusted evidence matching this claim was found. This does not mean the claim is false —
+          absence of evidence is not proof either way.
+        </p>
+      )}
+    </div>
+  )
+}
+
 export default function Result() {
   const { submissionId } = useParams()
   const navigate = useNavigate()
   const [submission, setSubmission] = useState(null)
+  const [verification, setVerification] = useState(null)
+  const [evidence, setEvidence] = useState([])
+  const [verificationLoading, setVerificationLoading] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+
+  async function loadVerification() {
+    try {
+      const data = await api.getVerification(submissionId)
+      setVerification(data)
+      try {
+        const ev = await api.getEvidence(submissionId)
+        setEvidence(ev.evidence || [])
+      } catch {
+        setEvidence([])
+      }
+    } catch {
+      setVerification(null)
+    }
+  }
+
+  async function handleVerify() {
+    setVerificationLoading(true)
+    try {
+      await api.runVerification(submissionId)
+      await loadVerification()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setVerificationLoading(false)
+    }
+  }
 
   useEffect(() => {
     let active = true
@@ -26,6 +199,14 @@ export default function Result() {
         setSubmission(data)
         if (data.status === 'submitted' || data.status === 'processing') {
           setTimeout(load, 2500)
+          return
+        }
+        const result = await api.getVerification(submissionId).catch(() => null)
+        if (!active) return
+        setVerification(result)
+        if (result) {
+          const ev = await api.getEvidence(submissionId).catch(() => null)
+          if (active) setEvidence(ev?.evidence || [])
         }
       } catch (err) {
         if (active) {
@@ -135,9 +316,23 @@ export default function Result() {
           {submission.verification_result && (
             <div>
               <p className="label">AI analysis</p>
-              <p className="mt-1 rounded-lg bg-blue-50 p-3 text-sm text-slate-700">
-                {submission.verification_result.summary || 'Analysis complete.'}
-              </p>
+              <div className="mt-1">
+                <VerdictCard result={submission.verification_result} />
+              </div>
+            </div>
+          )}
+
+          {!isProcessing && (
+            <div>
+              <p className="label">Official source verification</p>
+              <div className="mt-1">
+                <VerificationCard
+                  verification={verification}
+                  evidence={evidence}
+                  onRun={handleVerify}
+                  running={verificationLoading}
+                />
+              </div>
             </div>
           )}
         </div>

@@ -1,13 +1,26 @@
+from ..models.news import utcnow
 from ..repositories import news_repository
 from ..schemas.news import NewsStatus
+from . import ai_service
 
 
 async def run_pipeline(submission_id: str) -> None:
-    """Phase 3 placeholder. Phase 4 will plug in the real AI analysis here."""
+    """Run the AI detection pipeline for a submitted piece of news."""
     await news_repository.update_status(submission_id, NewsStatus.PROCESSING.value)
 
     try:
-        result = await analyze(submission_id)
+        submission = await news_repository.find_by_submission_id(submission_id)
+        if submission is None:
+            return
+
+        content = (submission.get("content") or "").strip()
+        if not content and submission.get("url"):
+            content = await ai_service.extract_text_from_url(submission["url"])
+
+        result = ai_service.analyze_text(content)
+        result["analyzed_at"] = utcnow().isoformat()
+
+        await ai_service.save_prediction(submission, result)
         await news_repository.update_status(
             submission_id,
             NewsStatus.COMPLETED.value,
@@ -16,12 +29,3 @@ async def run_pipeline(submission_id: str) -> None:
     except Exception:
         await news_repository.update_status(submission_id, NewsStatus.FAILED.value)
         raise
-
-
-async def analyze(submission_id: str) -> dict:
-    """Stub for the AI verification engine (implemented in Phase 4)."""
-    return {
-        "verdict": None,
-        "confidence": None,
-        "summary": "AI analysis pipeline connected. Full analysis arrives in Phase 4.",
-    }

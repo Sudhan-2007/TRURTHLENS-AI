@@ -35,4 +35,10 @@ export const api = {
   submitUrl: (url) => request('/api/news/submit-url', { method: 'POST', body: JSON.stringify({ input_type: 'url', url }) }),
   getSubmission: (submissionId) => request(`/api/news/${submissionId}`),
   deleteSubmission: (submissionId) => request(`/api/news/${submissionId}`, { method: 'DELETE' }),
+  listSubmissions: (limit = 20) => request(`/api/news/history?limit=${limit}`),
+  modelInfo: () => request('/api/ai/model-info'),
+  runVerification: (submissionId) => request(`/api/verification/${submissionId}`, { method: 'POST' }),
+  getVerification: (submissionId) => request(`/api/verification/${submissionId}`),
+  getEvidence: (submissionId) => request(`/api/verification/${submissionId}/evidence`),
+  listSources: () => request('/api/sources'),
 }

@@ -4,11 +4,15 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from .api import ai as ai_router
 from .api import auth as auth_router
 from .api import news as news_router
 from .api import users as users_router
+from .api import verification as verification_router
 from .config import settings
 from .db import close_db, connect_db, init_indexes
+from .seed import seed_all
+from .services.source_service import refresh_approved_domains
 
 MAX_REQUEST_BODY_BYTES = 64 * 1024
 
@@ -18,6 +22,11 @@ async def lifespan(app: FastAPI):
     connect_db()
     try:
         await init_indexes()
+    except Exception:
+        pass
+    try:
+        await seed_all()
+        await refresh_approved_domains()
     except Exception:
         pass
     yield
@@ -77,3 +86,6 @@ async def health_db():
 app.include_router(auth_router.router)
 app.include_router(users_router.router)
 app.include_router(news_router.router)
+app.include_router(ai_router.router)
+app.include_router(verification_router.router)
+app.include_router(verification_router.sources_router)

@@ -39,6 +39,12 @@ async def get_submission(submission_id: str, user: dict) -> dict:
     return doc
 
 
+async def list_submissions(user: dict, limit: int = 20, skip: int = 0) -> list[dict]:
+    return await news_repository.list_user_submissions(
+        ObjectId(user["_id"]), limit=limit, skip=skip
+    )
+
+
 async def delete_submission(submission_id: str, user: dict) -> None:
     doc = await news_repository.find_by_submission_id(submission_id)
     if doc is None:

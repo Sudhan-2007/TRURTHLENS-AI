@@ -43,6 +43,16 @@ async def submit_url(
     }
 
 
+@router.get("/history", response_model=list[NewsOut])
+async def list_history(
+    limit: int = 20,
+    skip: int = 0,
+    user: dict = Depends(get_current_user),
+):
+    docs = await news_service.list_submissions(user, limit, skip)
+    return [serialize_news(doc) for doc in docs]
+
+
 @router.get("/{submission_id}", response_model=NewsOut)
 async def get_submission(
     submission_id: str, user: dict = Depends(get_current_user)
