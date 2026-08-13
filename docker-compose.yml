@@ -21,10 +21,11 @@ services:
       dockerfile: backend/Dockerfile
     restart: unless-stopped
     environment:
-      # Compose interpolation reads from a root .env (gitignored). MONGODB_URI
-      # defaults to the compose-managed MongoDB service; set DATABASE_URL in
-      # .env to use MongoDB Atlas instead.
-      DATABASE_URL: ${DATABASE_URL:-${MONGODB_URI:-mongodb://mongodb:27017}}
+      # Compose interpolation reads from a root .env (gitignored). DATABASE_URL
+      # defaults to the compose-managed MongoDB service; set DATABASE_URL in .env
+      # to use MongoDB Atlas instead. (MONGODB_URI is an accepted alias when the
+      # backend runs outside compose, but compose itself only reads DATABASE_URL.)
+      DATABASE_URL: ${DATABASE_URL:-mongodb://mongodb:27017}
       MONGODB_DB: ${MONGODB_DB:-truthlens}
       ENVIRONMENT: ${ENVIRONMENT:-production}
       DEBUG: ${DEBUG:-false}

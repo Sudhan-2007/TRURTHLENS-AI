@@ -29,9 +29,12 @@ orchestrated with Docker Compose and CI/CD on GitHub Actions.
 
 - The frontend image serves the built SPA from Nginx and reverse-proxies
   `/api/`, `/health`, and `/api/metrics` to the backend container.
-- The backend image includes the AI inference engine and the optional
-  DistilBERT model directory; when the model files are absent it falls back to
-  the baseline (non-Transformer) backend automatically.
+- The backend image includes the AI inference engine. The DistilBERT and
+  baseline model files are **not** baked into the image (see `.dockerignore`);
+  the compose setup mounts `./ai-engine/models` from the host read-only.
+  `AI_MODEL_PATH` points the engine at that directory. If the DistilBERT
+  checkpoint is missing the predictor falls back to the baseline model, and
+  inference errors loudly if neither model is present.
 - Prometheus scrapes `/api/metrics`; see `docs/MONITORING.md`.
 
 ## Prerequisites

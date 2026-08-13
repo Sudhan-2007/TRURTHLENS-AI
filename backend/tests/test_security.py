@@ -236,3 +236,38 @@ def test_production_rejects_default_jwt_secret():
         Settings(DEBUG=False, JWT_SECRET="change-me")
     with pytest.raises(ValueError):
         Settings(DEBUG=False, JWT_SECRET="short-secret")
+
+
+def test_production_validator_rejects_placeholder_secret_and_uri():
+    with pytest.raises(ValueError):
+        Settings(ENVIRONMENT="production", JWT_SECRET="change-me")
+    with pytest.raises(ValueError):
+        Settings(
+            ENVIRONMENT="production",
+            JWT_SECRET="a" * 40,
+            MONGODB_URI="mongodb://localhost:27017",
+        )
+    with pytest.raises(ValueError):
+        Settings(
+            ENVIRONMENT="production",
+            JWT_SECRET="a" * 40,
+            MONGODB_URI="mongodb+srv://<user>:<password>@<cluster-url>",
+        )
+
+
+def test_production_validator_accepts_strong_secret_and_real_uri():
+    s = Settings(
+        ENVIRONMENT="production",
+        JWT_SECRET="a" * 40,
+        MONGODB_URI="mongodb+srv://user:pass@cluster0.example.mongodb.net/?retryWrites=true",
+    )
+    assert s.ENVIRONMENT == "production"
+    assert s.debug is False
+
+
+def test_debug_defaults_follow_environment():
+    assert Settings(ENVIRONMENT="development").debug is True
+    assert Settings(ENVIRONMENT="testing").debug is True
+    assert Settings(ENVIRONMENT="production", JWT_SECRET="a" * 40,
+                    MONGODB_URI="mongodb://real-host:27017").debug is False
+    assert Settings(ENVIRONMENT="development", DEBUG=True).debug is True
