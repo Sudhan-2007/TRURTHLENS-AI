@@ -5,11 +5,17 @@ package name 'ai_engine' via tools/ai_loader.py. Model files are loaded lazily s
 the API can start even if the models have not been trained yet.
 """
 import json
+import os
 import re
 import sys
 from pathlib import Path
 
 import httpx
+
+from ..config import settings
+
+if settings.AI_MODEL_PATH:
+    os.environ.setdefault("AI_MODEL_PATH", settings.AI_MODEL_PATH)
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 _TOOLS = _PROJECT_ROOT / "tools"
@@ -32,6 +38,7 @@ from ai_engine.inference.predict import FakeNewsPredictor  # noqa: E402
 
 from ..db import get_ai_predictions_collection  # noqa: E402
 from ..models.news import utcnow  # noqa: E402
+from ..monitoring import metrics  # noqa: E402
 
 _predictor: FakeNewsPredictor | None = None
 
@@ -42,7 +49,25 @@ def _get_predictor() -> FakeNewsPredictor:
     global _predictor
     if _predictor is None:
         _predictor = FakeNewsPredictor(backend=MODEL_BACKEND)
+        info = _predictor.model_info if hasattr(_predictor, "model_info") else {}
+        metrics.record_ai_model_info(
+            info.get("model_name", "unknown"),
+            info.get("model_version", "unknown"),
+            info.get("backend", MODEL_BACKEND),
+        )
     return _predictor
+
+
+def model_available() -> dict:
+    """Return model availability/version info without triggering a full load."""
+    from ai_engine.config import DISTILBERT_MODEL_DIR
+
+    return {
+        "loaded": _predictor is not None,
+        "backend": MODEL_BACKEND,
+        "distilbert_trained": (DISTILBERT_MODEL_DIR / "config.json").exists(),
+        "model_version": MODEL_VERSION,
+    }
 
 
 def _summary(verdict: str, confidence: float, model_name: str) -> str:
@@ -72,7 +97,19 @@ def analyze_text(text: str) -> dict:
         raise ValueError(
             f"Content must be at least {TEXT_MIN_LENGTH} characters long to analyze"
         )
-    result = _get_predictor().predict(cleaned, model_version=MODEL_VERSION)
+    try:
+        result = _get_predictor().predict(cleaned, model_version=MODEL_VERSION)
+    except Exception:
+        metrics.record_ai_error()
+        raise
+    low_confidence = confidence_level(result["confidence"]) == "low"
+    metrics.record_ai_inference(
+        prediction=result["prediction"],
+        model_name=result["model_name"],
+        model_version=result["model_version"],
+        duration_ms=result["processing_time_ms"],
+        low_confidence=low_confidence,
+    )
     return {
         "verdict": result["prediction"],
         "confidence": result["confidence"],

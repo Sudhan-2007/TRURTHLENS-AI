@@ -863,6 +863,20 @@ Sensitive information should not be unnecessarily included in logs.
 * Pipeline failures logged with tracebacks by `app/services/ai_pipeline.py` (`logger.exception`).
 * Startup/shutdown events logged by `app/main.py` including the active database mode.
 
+### Implemented (Phase 10)
+
+* Prometheus metrics exposed at `/api/metrics` (unauthenticated so load
+  balancers and Prometheus can scrape) via `app/monitoring/metrics.py`.
+* Metric families: HTTP request counts/durations/errors, database up + ping
+  latency, uptime, environment, and AI inference counts/durations, low-
+  confidence results, errors, and model metadata.
+* Observability middleware in `app/main.py` records request metrics using
+  templated route paths for stable labels.
+* Health endpoints: `/health` and `/api/health` (liveness/readiness with DB and
+  AI status) and `/api/health/db` (connectivity + ping latency).
+* See `docs/MONITORING.md` for the full catalog, alerts, and the daily/weekly/
+  monthly maintenance schedule.
+
 ---
 
 # 24. Testing Strategy
@@ -1001,6 +1015,46 @@ A possible deployment architecture is:
 
 The components may be deployed separately depending on project requirements.
 
+### Implemented (Phase 10)
+
+The platform ships a production deployment package:
+
+```text
+                   INTERNET
+                      |
+                      v
+            +-------------------+
+            | Nginx SPA (frontend) |  port 80 (HTTP_PORT)
+            | /api -> backend     |
+            +---------+----------+
+                      | /api, /health, /api/metrics
+                      v
+            +-------------------+
+            | Uvicorn backend    |  port 8000
+            | FastAPI app        |
+            +---------+----------+
+                      | MONGODB_URI / DATABASE_URL
+                      v
+            +-------------------+
+            | MongoDB 7          |  port 27017
+            +-------------------+
+```
+
+* `docker-compose.yml` orchestrates `mongodb`, `backend`, and `frontend`;
+  production defaults to the compose-managed MongoDB service.
+* `backend/Dockerfile` bundles the backend and the AI inference engine (CPU
+  torch wheels), runs as a non-root user, and healthchecks `/health`.
+* `frontend/Dockerfile` builds the Vite app and serves it from Nginx with an
+  `/api/` reverse proxy and SPA fallback (`deployment/nginx/nginx.conf`).
+* CI/CD in `.github/workflows/ci.yml`: backend tests (MongoDB service),
+  frontend lint/test/build, image build+push to `ghcr.io`, and a `v*`-tag-only
+  production deploy gate. Secrets are scanned in CI.
+* Backup/restore (`deployment/scripts/backup_db.py`, `restore_db.py`) and a
+  post-deployment smoke test (`deployment/scripts/smoke_test.py`).
+* Production configuration validation in `app/config.py` rejects placeholder
+  JWT secrets and placeholder/local MongoDB URIs when `ENVIRONMENT=production`.
+* Deployment and operational instructions: `docs/DEPLOYMENT.md`.
+
 ---
 
 # 27. Future Enhancements
@@ -1067,13 +1121,16 @@ The most important design principle is transparency. TruthLens AI should help us
 
 The ultimate objective is not to make users blindly trust TruthLens AI, but to encourage users to **verify information before believing or sharing it**.
 
-### Phase 9 Completion Status
+### Phase 10 Completion Status
 
-Phases 1–9 are complete. Automated unit, integration, security, e2e
-(TC-001…TC-012), and performance tests pass, the frontend builds and lints
-cleanly, security hardening controls are validated by tests, and operational
-logging is in place. **The system is ready for Phase 10: Deployment and
-Monitoring.**
+Phases 1–10 are complete. The production deployment package is in place:
+Docker Compose services, container images, a CI/CD pipeline with secret
+scanning and tag-gated deploys, unauthenticated health/metrics endpoints,
+Prometheus metrics for HTTP, database, and AI inference, backup/restore and
+smoke-test scripts, and deployment/monitoring guides. Automated unit,
+integration, security, e2e, performance, and monitoring tests pass; the
+frontend builds and lints cleanly. Deployment artifacts are validated in CI
+(Docker is not required for local development).
 
 ### Core Principle
 

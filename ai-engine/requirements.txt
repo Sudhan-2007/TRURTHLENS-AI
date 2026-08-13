@@ -1,0 +1,11 @@
+# AI inference stack for the embedded ai-engine runtime.
+# torch is installed from the CPU wheel index in the Docker build:
+#   --extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.13.0+cpu
+transformers==5.15.0
+tokenizers==0.22.2
+safetensors==0.8.0
+scikit-learn==1.9.0
+joblib==1.5.3
+numpy==2.5.1
+pandas==3.0.5

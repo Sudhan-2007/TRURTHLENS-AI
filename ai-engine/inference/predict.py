@@ -35,10 +35,18 @@ class FakeNewsPredictor:
                 raise RuntimeError("PyTorch is not installed; cannot use distilbert backend")
             from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-            self._transformer = {
-                "tokenizer": AutoTokenizer.from_pretrained(str(DISTILBERT_MODEL_DIR)),
-                "model": AutoModelForSequenceClassification.from_pretrained(str(DISTILBERT_MODEL_DIR)),
-            }
+            try:
+                self._transformer = {
+                    "tokenizer": AutoTokenizer.from_pretrained(str(DISTILBERT_MODEL_DIR)),
+                    "model": AutoModelForSequenceClassification.from_pretrained(
+                        str(DISTILBERT_MODEL_DIR)
+                    ),
+                }
+            except OSError as exc:
+                raise RuntimeError(
+                    f"DistilBERT model not found at {DISTILBERT_MODEL_DIR}; "
+                    "falling back to baseline backend"
+                ) from exc
         return self._transformer
 
     def _predict_baseline(self, text: str) -> tuple[str, float]:

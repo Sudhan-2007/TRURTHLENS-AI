@@ -1,0 +1,70 @@
+name: truthlens
+
+services:
+  mongodb:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - truthlens
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      # Compose interpolation reads from a root .env (gitignored). MONGODB_URI
+      # defaults to the compose-managed MongoDB service; set DATABASE_URL in
+      # .env to use MongoDB Atlas instead.
+      DATABASE_URL: ${DATABASE_URL:-${MONGODB_URI:-mongodb://mongodb:27017}}
+      MONGODB_DB: ${MONGODB_DB:-truthlens}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      DEBUG: ${DEBUG:-false}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost}
+      TRUTHLENS_MODEL_BACKEND: ${TRUTHLENS_MODEL_BACKEND:-distilbert}
+      AI_MODEL_PATH: ${AI_MODEL_PATH:-/app/ai-engine/models/distilbert}
+      SOURCE_API_KEYS: ${SOURCE_API_KEYS:-}
+    volumes:
+      - ./ai-engine/models:/app/ai-engine/models:ro
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    networks:
+      - truthlens
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - truthlens
+
+volumes:
+  mongo-data:
+
+networks:
+  truthlens:
+    driver: bridge

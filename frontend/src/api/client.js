@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+// Same-origin by default (production behind nginx). Local dev sets
+// VITE_API_BASE_URL=http://localhost:8000 in frontend/.env.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
 function getToken() {
   return localStorage.getItem('token')

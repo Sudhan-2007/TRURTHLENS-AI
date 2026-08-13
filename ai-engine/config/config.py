@@ -20,7 +20,10 @@ BASELINE_VECTORIZER_PATH = BASELINE_MODEL_DIR / "vectorizer.pkl"
 BASELINE_MODEL_PATH = BASELINE_MODEL_DIR / "model.pkl"
 BASELINE_METRICS_PATH = EVALUATION_DIR / "baseline_report.json"
 
-DISTILBERT_MODEL_DIR = MODELS_DIR / "distilbert"
+# DistilBERT checkpoint location. Override at runtime with AI_MODEL_PATH so a
+# deployment can point at a mounted/served model directory.
+_distilbert_override = os.environ.get("AI_MODEL_PATH", "").strip()
+DISTILBERT_MODEL_DIR = Path(_distilbert_override) if _distilbert_override else MODELS_DIR / "distilbert"
 DISTILBERT_BASE_MODEL = "distilbert-base-uncased"
 NUM_LABELS = 2
 CLASS_LABELS = ["REAL", "FAKE"]

@@ -1,0 +1,149 @@
+# TruthLens AI — Deployment Guide
+
+Production deployment for the TruthLens AI platform: backend (FastAPI +
+Uvicorn), frontend (Vite + Nginx), MongoDB, and the AI inference engine,
+orchestrated with Docker Compose and CI/CD on GitHub Actions.
+
+## Architecture
+
+```text
+                 INTERNET
+                    |
+                    v
+            +---------------+
+            | Nginx (SPA)   |   frontend/ (port 80)
+            |  /api -> backend
+            +-------+-------+
+                    |  /api, /health
+                    v
+            +---------------+
+            | Uvicorn       |   backend/ (port 8000)
+            | FastAPI app   |
+            +-------+-------+
+                    |  MONGODB_URI
+                    v
+            +---------------+
+            | MongoDB 7     |   mongodb/ (port 27017)
+            +---------------+
+```
+
+- The frontend image serves the built SPA from Nginx and reverse-proxies
+  `/api/`, `/health`, and `/api/metrics` to the backend container.
+- The backend image includes the AI inference engine and the optional
+  DistilBERT model directory; when the model files are absent it falls back to
+  the baseline (non-Transformer) backend automatically.
+- Prometheus scrapes `/api/metrics`; see `docs/MONITORING.md`.
+
+## Prerequisites
+
+- Docker Engine + Docker Compose v2 on the target host.
+- A production `JWT_SECRET` of at least 32 characters (generate with
+  `python -c "import secrets; print(secrets.token_urlsafe(48))"`).
+- Either a reachable MongoDB URI or the compose-managed MongoDB service.
+
+## Environment Variables
+
+See `backend/.env.example`, `frontend/.env.example`, and `.env.example` at the
+repo root for the full annotated list. Production values are set in the CI/CD
+deploy job or the host environment; **never commit `.env` files**.
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `ENVIRONMENT` | yes | `development`, `testing`, or `production` |
+| `MONGODB_URI` / `DATABASE_URL` | yes | MongoDB connection string; both names are accepted |
+| `MONGODB_DB` | yes | Database name |
+| `JWT_SECRET` | yes | ≥ 32 chars; production validator rejects `change-me` |
+| `JWT_EXPIRE_MINUTES` | no | Token lifetime |
+| `AI_MODEL_PATH` | no | Overrides the DistilBERT model directory |
+| `TRUTHLENS_MODEL_BACKEND` | no | `transformer` or `baseline` |
+| `SOURCE_API_KEYS` | no | JSON map of optional source API keys |
+| `HTTP_PORT` | no | Host port for the frontend (default `80`) |
+
+> The production validator **refuses to start** with a placeholder JWT secret
+> or a placeholder/local MongoDB URI when `ENVIRONMENT=production`.
+
+## Run Locally (Docker Compose)
+
+```bash
+export JWT_SECRET="$(python -c 'import secrets; print(secrets.token_urlsafe(48))')"
+docker compose build
+docker compose up -d
+docker compose ps
+```
+
+Then:
+
+- Frontend: `http://localhost` (default `HTTP_PORT`)
+- Health: `http://localhost/health`
+- Metrics: `http://localhost/api/metrics`
+
+Post-deployment verification:
+
+```bash
+docker compose exec backend python deployment/scripts/smoke_test.py --base http://localhost
+```
+
+## CI/CD Pipeline (GitHub Actions)
+
+`.github/workflows/ci.yml` implements:
+
+1. **Backend tests** — spins up MongoDB 7 as a service, installs the backend and
+   AI-engine requirements (CPU torch wheel), runs the full `pytest -q` suite
+   against the `truthlens_test` database, and scans the backend/frontend source
+   for accidentally committed secrets.
+2. **Frontend checks** — `npm run lint`, `npm run test`, and `npm run build`.
+3. **Docker images** — on `main` and `v*` tags, builds and pushes the
+   `backend` and `frontend` images to `ghcr.io` (login-only on `main`).
+4. **Deploy** — on `v*` tags only, runs in the `production` environment gate.
+
+### Release Process
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The deploy job applies the tagged images to the production host and runs the
+post-deployment smoke test.
+
+## Backup and Restore
+
+Run from a machine that can reach the database (inside the backend container or
+the backend venv):
+
+```bash
+# Daily backup (all collections -> ./deployment/backups/truthlens_<timestamp>/)
+python deployment/scripts/backup_db.py --out ./deployment/backups
+
+# Restore from a backup directory (--drop wipes target collections first)
+python deployment/scripts/restore_db.py --backup ./deployment/backups/truthlens_20260812_000000 --drop
+```
+
+Both scripts read `DATABASE_URL` or `MONGODB_URI` and refuse placeholder
+connection strings. Backup strategy: daily full export, retained with the
+scheduled job; restore is verified at least monthly (see
+`docs/MONITORING.md`).
+
+## Rollback
+
+1. Re-tag the previous known-good image and re-run the deploy step:
+   ```bash
+   docker compose up -d --pull always
+   ```
+   with the previous tag in the compose/image reference.
+2. If a data migration was the cause, restore the last backup:
+   ```bash
+   python deployment/scripts/restore_db.py --backup ./deployment/backups/<previous> --drop
+   ```
+3. Run the smoke test to confirm health before re-opening traffic.
+
+## Operational Notes
+
+- The backend healthcheck in `backend/Dockerfile` probes `/health`; the
+  compose healthcheck waits for `database` connectivity and the `/health`
+  endpoint.
+- `/health`, `/api/health`, `/api/health/db`, and `/api/metrics` are public and
+  intentionally **not** behind auth so load balancers and Prometheus can reach
+  them without credentials.
+- TLS termination is expected at the ingress/load balancer in front of the
+  Nginx container.
