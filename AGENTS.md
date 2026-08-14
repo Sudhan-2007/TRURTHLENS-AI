@@ -36,7 +36,7 @@ default shell commands below are Windows-compatible.
 ## Commands
 
 Backend (run from `backend\`, venv `.venv\Scripts\python.exe`):
-- `pytest -q` (from `backend\`) — app suite (152 passing; asyncio auto mode;
+- `pytest -q` (from `backend\`) — app suite (154 passing; asyncio auto mode;
   pytest-asyncio session-scoped loops). Needs a running MongoDB
   (localhost:27017 or the compose service).
 - `..\python -m pytest ai-engine\tests -q` (from repo root) — AI-engine unit
@@ -49,7 +49,7 @@ Frontend (run from `frontend\`):
 - `npm run dev` — dev server (port 5173).
 - `npm run build` — production build.
 - `npm run lint` — oxlint.
-- `npm test` — vitest (29 tests).
+- `npm test` — vitest (34 tests).
 
 AI engine:
 - `python tools\train_baseline.py` / `python tools\train_distilbert.py` — retrain

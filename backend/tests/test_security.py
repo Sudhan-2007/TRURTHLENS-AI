@@ -1,6 +1,9 @@
+from datetime import UTC, datetime, timedelta
+
+import jwt
 import pytest
 
-from app.config import Settings
+from app.config import Settings, settings
 from app.db import get_users_collection
 
 from .conftest import auth_headers, register_user
@@ -118,6 +121,32 @@ async def test_normal_user_blocked_from_admin_endpoints(client):
     assert res.status_code == 403
     res = await client.get("/api/dashboard/admin/statistics", headers=headers)
     assert res.status_code == 403
+
+
+async def test_jwt_with_non_objectid_subject_rejected(client):
+    await register_user(client)
+    token = jwt.encode(
+        {
+            "sub": "not-an-objectid",
+            "role": "user",
+            "exp": datetime.now(UTC) + timedelta(minutes=5),
+        },
+        settings.JWT_SECRET,
+        algorithm=settings.JWT_ALGORITHM,
+    )
+    res = await client.get(
+        "/api/users/me", headers={"Authorization": f"Bearer {token}"}
+    )
+    assert res.status_code == 401
+    assert res.json()["detail"] == "User no longer exists"
+
+
+async def test_admin_role_update_with_malformed_user_id(client):
+    await _setup_user(client)
+    headers = await _make_admin(client)
+    res = await client.put("/api/users/not-an-objectid/role?role=user", headers=headers)
+    assert res.status_code == 404
+    assert res.json()["detail"] == "User not found"
 
 
 async def test_admin_can_register_official_source(client):
