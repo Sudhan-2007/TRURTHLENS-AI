@@ -196,5 +196,9 @@ jobs:
             curl -fsS http://localhost:9090/-/healthy
 
       - name: Smoke test production URL
-        if: secrets.PROD_URL != ''
-        run: python deployment/scripts/smoke_test.py --base "${{ secrets.PROD_URL }}"
+        run: |
+          if [ -n "${{ secrets.PROD_URL }}" ]; then
+            python deployment/scripts/smoke_test.py --base "${{ secrets.PROD_URL }}"
+          else
+            echo "PROD_URL not set; skipping external smoke test."
+          fi
