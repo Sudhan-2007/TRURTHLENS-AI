@@ -42,8 +42,9 @@ jobs:
       - name: Scan for committed secrets
         run: |
           if grep -rInE "(password|secret|api[_-]?key|token)[\"']?\s*[:=]\s*[\"'][^\"']{8,}" \
-            --include="*.py" --include="*.js" --include="*.jsx" --include="*.json" --include="*.toml" \
-            backend/app frontend/src .github 2>/dev/null; then
+            --include="*.py" --include="*.js" --include="*.jsx" --include="*.json" \
+            --include="*.toml" --include="*.yml" --include="*.yaml" \
+            backend/app frontend/src deployment .github 2>/dev/null; then
             echo "Possible secret committed to source."
             exit 1
           fi
