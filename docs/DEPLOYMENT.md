@@ -139,6 +139,7 @@ Set these on the `production` environment (Settings → Environments → product
 | `PROD_MONGODB_DB` | Production database name |
 | `PROD_CORS_ORIGINS` | Comma-separated allowed browser origins |
 | `PROD_VITE_API_BASE_URL` | Usually empty (same-origin nginx proxy) |
+| `PROD_GRAFANA_PASSWORD` | Grafana admin password (never the default `admin`) |
 | `GHCR_TOKEN` | GitHub PAT with `read:packages` so the host can pull images |
 
 The deploy job interpolates these into the host `.env`; production startup
