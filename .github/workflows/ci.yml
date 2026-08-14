@@ -83,9 +83,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Validate docker-compose.yml (schema + interpolation)
-        run: docker compose config --quiet
-
-      - name: Validate compose against the example environment
+        # .env.example supplies the required JWT_SECRET placeholder; a clean
+        # checkout has no .env so a bare `config --quiet` would fail.
         run: docker compose --env-file .env.example config --quiet
 
       - name: Validate the monitoring compose stack
