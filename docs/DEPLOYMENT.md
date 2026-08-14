@@ -98,9 +98,10 @@ docker compose exec backend python deployment/scripts/smoke_test.py --base http:
 3. **Docker images** — on `main` and `v*` tags, builds and pushes the
    `backend` and `frontend` images to `ghcr.io` (login-only on `main`).
 4. **Deploy** — on `v*` tags only, runs in the `production` environment gate.
-   Copies `docker-compose.yml` and a rendered `.env` to the host, pulls the
-   tagged GHCR images, brings the stack up, and runs the smoke test against the
-   public URL.
+   Copies `docker-compose.yml`, the monitoring compose and config, and a
+   rendered `.env` to the host; pulls the tagged GHCR images; brings the main
+   stack and the monitoring stack (Prometheus/Grafana/Alertmanager) up; and
+   runs the smoke test against the public URL.
 
 ### Release Process
 

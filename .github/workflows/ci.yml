@@ -175,7 +175,7 @@ jobs:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USER }}
           key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
-          source: "docker-compose.yml,.env"
+          source: "docker-compose.yml,deployment/docker-compose.monitoring.yml,deployment/monitoring,.env"
           target: /opt/truthlens
 
       - name: Deploy release on production host
@@ -190,6 +190,10 @@ jobs:
             docker compose pull
             docker compose up -d --remove-orphans
             docker compose ps
+            docker compose -f docker-compose.monitoring.yml pull
+            docker compose -f docker-compose.monitoring.yml up -d
+            sleep 10
+            curl -fsS http://localhost:9090/-/healthy
 
       - name: Smoke test production URL
         if: secrets.PROD_URL != ''
