@@ -109,6 +109,7 @@ def analyze_text(text: str) -> dict:
         model_version=result["model_version"],
         duration_ms=result["processing_time_ms"],
         low_confidence=low_confidence,
+        backend=MODEL_BACKEND,
     )
     return {
         "verdict": result["prediction"],

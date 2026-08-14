@@ -87,6 +87,7 @@ def record_ai_inference(
     model_version: str,
     duration_ms: float,
     low_confidence: bool,
+    backend: str = "",
 ) -> None:
     AI_INFERENCE_COUNT.labels(prediction=prediction, model_name=model_name).inc()
     AI_INFERENCE_DURATION.observe(duration_ms / 1000.0)
@@ -96,7 +97,7 @@ def record_ai_inference(
         {
             "model_name": model_name,
             "model_version": model_version,
-            "backend": settings.AI_MODEL_PATH or "",
+            "backend": backend,
         }
     )
 

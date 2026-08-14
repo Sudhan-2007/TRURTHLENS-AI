@@ -2,7 +2,8 @@ name: truthlens
 
 services:
   mongodb:
-    image: mongo:7
+    # Pinned to a specific patch release for reproducibility (immutable tag).
+    image: mongo:7.0.20
     restart: unless-stopped
     volumes:
       - mongo-data:/data/db

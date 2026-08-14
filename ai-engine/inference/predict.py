@@ -19,6 +19,16 @@ class FakeNewsPredictor:
         self._baseline = None
         self._transformer = None
 
+    @property
+    def model_info(self) -> dict:
+        return {
+            "model_name": (
+                "DistilBERT" if self.backend == "distilbert" else "TF-IDF+LogisticRegression"
+            ),
+            "model_version": "1.0.0",
+            "backend": self.backend,
+        }
+
     def _load_baseline(self):
         if self._baseline is None:
             self._baseline = {
