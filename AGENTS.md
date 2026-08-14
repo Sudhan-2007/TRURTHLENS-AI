@@ -81,3 +81,11 @@ Docker (from repo root):
   container start it is false until the model mounts and loads.
 - CI requires `deployment-checks` (compose config validation) to pass before
   images build; workflow lives in `.github/workflows/ci.yml`.
+- Docker Desktop sits on an OneDrive path on this host; BuildKit's file-watcher
+  can fail to detect changed files, so `docker compose build` silently serves
+  stale cache (observed: a `package-lock.json` bump produced an image with the
+  OLD bundle). After dependency/source changes, rebuild with
+  `docker compose build --no-cache <svc>` and confirm the served bundle hash
+  matches a fresh `npm run build` (`index-*.js` in the page HTML vs `dist/`).
+  The nanoid advisory fix is build-toolchain only and never appears in the
+  served bundle.
