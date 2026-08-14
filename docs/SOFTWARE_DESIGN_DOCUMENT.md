@@ -954,9 +954,10 @@ passing**; AI engine: **14 unit tests**; frontend: **7 component tests**.
 ### Quality Gates (Phase 9)
 
 1. `cd backend && .venv\Scripts\python.exe -m pytest -q` — all backend tests pass.
-2. `cd frontend && npm run test` — all component tests pass.
-3. `cd frontend && npm run build` — production build succeeds.
-4. `cd frontend && npm run lint` — 0 warnings / 0 errors.
+2. `cd backend && ruff check app tests && ruff format --check app tests` — lint gate.
+3. `cd frontend && npm run test` — all component tests pass.
+4. `cd frontend && npm run build` — production build succeeds.
+5. `cd frontend && npm run lint` — 0 warnings / 0 errors.
 5. No test may depend on external network services; MongoDB tests run against the local test database and are fully seeded/cleaned per test.
 6. Rate-limited endpoints (10/min submit, 30/min analytics) are enforced and covered by tests.
 

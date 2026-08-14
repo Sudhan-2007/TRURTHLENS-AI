@@ -41,6 +41,8 @@ Backend (run from `backend\`, venv `.venv\Scripts\python.exe`):
   (localhost:27017 or the compose service).
 - `..\python -m pytest ai-engine\tests -q` (from repo root) — AI-engine unit
   tests (14 passing; no DB or model artifacts required).
+- `ruff check app tests` + `ruff format --check app tests` — lint gate (clean;
+  must stay clean before committing; config in `backend\ruff.toml`).
 - `uvicorn app.main:app --reload` — local dev server.
 
 Frontend (run from `frontend\`):
