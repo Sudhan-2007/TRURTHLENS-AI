@@ -138,6 +138,13 @@ async def test_delete_own_submission(client):
     assert await get_news_collection().find_one({"submission_id": sid}) is None
 
 
+async def test_delete_nonexistent_submission(client):
+    await register_user(client)
+    headers = await auth_headers(client)
+    res = await client.delete("/api/news/TL-000000000000-ABC", headers=headers)
+    assert res.status_code == 404
+
+
 async def test_delete_another_users_submission(client):
     await register_user(client, name="First", email="first@example.com")
     headers_a = await auth_headers(client, email="first@example.com")

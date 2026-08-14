@@ -1,3 +1,6 @@
+from app.db import get_news_collection
+from app.services import history_service
+
 from .conftest import auth_headers, register_user
 from .test_news import submit_text
 
@@ -190,3 +193,27 @@ async def test_history_requires_authentication(client):
     assert res.status_code == 401
     res = await client.get("/api/history/TL-000000000000-ABC")
     assert res.status_code == 401
+
+
+async def test_history_invalid_filters_rejected(client):
+    headers = await _setup_user(client)
+    res = await client.get("/api/history?verification_status=BOGUS", headers=headers)
+    assert res.status_code == 400
+    res = await client.get("/api/history?trust_level=BOGUS", headers=headers)
+    assert res.status_code == 400
+
+
+async def test_history_empty_filters_return_empty(client):
+    headers = await _setup_user(client)
+    res = await client.get("/api/history?prediction=REAL", headers=headers)
+    assert res.json()["items"] == []
+    res = await client.get(
+        "/api/history?verification_status=SUPPORTED", headers=headers
+    )
+    assert res.json()["items"] == []
+    res = await client.get("/api/history?trust_level=HIGH", headers=headers)
+    assert res.json()["items"] == []
+
+
+async def test_map_by_id_empty_returns_empty():
+    assert await history_service._map_by_id(get_news_collection(), []) == {}

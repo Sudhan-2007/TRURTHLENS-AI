@@ -99,6 +99,26 @@ async def test_detect_requires_auth(client):
     assert res.status_code == 401
 
 
+async def test_detect_bad_gateway_when_pipeline_produces_nothing(client, monkeypatch):
+    await register_user(client)
+    headers = await auth_headers(client)
+
+    async def noop(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr(ai_pipeline, "run_pipeline", noop)
+    res = await submit_text(client, headers)
+    sid = res.json()["submission_id"]
+
+    res = await client.post(f"/api/ai/detect/{sid}", headers=headers)
+    assert res.status_code == 502
+    assert res.json()["detail"] == "AI detection produced no result"
+
+
+async def test_run_pipeline_missing_submission_returns():
+    await ai_pipeline.run_pipeline("TL-000000000000-MISSING")
+
+
 async def test_detect_invalid_submission(client):
     await register_user(client)
     headers = await auth_headers(client)

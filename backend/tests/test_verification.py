@@ -7,7 +7,13 @@ from app.db import (
     get_verification_results_collection,
 )
 from app.models.news import utcnow
-from app.services import ai_pipeline, claim_service, similarity_service, source_service
+from app.services import (
+    ai_pipeline,
+    claim_service,
+    similarity_service,
+    source_service,
+    verification_service,
+)
 from app.utils.security import hash_password
 
 from .conftest import auth_headers, register_user
@@ -255,3 +261,65 @@ async def test_source_registration_admin_only(client):
     assert res.status_code == 200
     assert res.json()["domain"] == "stat.ee"
     assert source_service.is_approved_domain("https://stat.ee/report") is True
+
+
+async def test_verify_bad_gateway_when_pipeline_produces_nothing(client, monkeypatch):
+    await register_user(client)
+    headers = await auth_headers(client)
+
+    async def noop(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr(ai_pipeline, "run_pipeline", noop)
+    res = await submit_text(client, headers)
+    sid = res.json()["submission_id"]
+
+    res = await client.post(f"/api/verification/{sid}", headers=headers)
+    assert res.status_code == 502
+    assert res.json()["detail"] == "AI detection produced no result for verification"
+
+
+async def test_get_verification_without_result_404(client):
+    await register_user(client)
+    headers = await auth_headers(client)
+    res = await submit_text(client, headers)
+    sid = res.json()["submission_id"]
+    res = await client.get(f"/api/verification/{sid}", headers=headers)
+    assert res.status_code == 404
+
+
+async def test_get_evidence_without_items_404(client):
+    await register_user(client)
+    headers = await auth_headers(client)
+    res = await submit_text(client, headers)
+    sid = res.json()["submission_id"]
+    await get_verification_evidence_collection().delete_many({"submission_id": sid})
+    res = await client.get(f"/api/verification/{sid}/evidence", headers=headers)
+    assert res.status_code == 404
+
+
+def test_classify_evidence_partial(monkeypatch):
+    monkeypatch.setattr(similarity_service, "compare_sentences", lambda a, b: 0.40)
+    result = verification_service._classify_evidence(
+        "claim text", {"claim": "evidence", "evidence_status": "SUPPORTED"}
+    )
+    assert result["evidence_status"] == "PARTIALLY_SUPPORTED"
+
+
+def test_aggregate_status_contradicted_and_supported_is_partial():
+    assert (
+        verification_service._aggregate_status(
+            [
+                {"evidence_status": "SUPPORTED"},
+                {"evidence_status": "CONTRADICTED"},
+            ]
+        )
+        == "PARTIALLY_SUPPORTED"
+    )
+
+
+def test_verification_confidence_unverified_capped_at_0_40():
+    conf = verification_service._verification_confidence(
+        [{"trust_level": "high", "similarity_score": 0.9}], "UNVERIFIED"
+    )
+    assert conf == 0.4

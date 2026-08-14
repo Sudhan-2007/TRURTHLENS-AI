@@ -1,5 +1,5 @@
 from app.db import get_trust_scores_collection
-from app.services import score_calculator
+from app.services import ai_pipeline, score_calculator, trust_score_service
 
 from .conftest import auth_headers, register_user
 from .test_news import submit_text
@@ -229,3 +229,55 @@ async def test_calculation_reproducible(client):
     stored = res.json()
     assert stored["final_score"] == _expected_final(stored)
     assert stored["trust_level"] == score_calculator.trust_level(stored["final_score"])
+
+
+async def test_calculate_bad_gateway_when_pipeline_produces_nothing(
+    client, monkeypatch
+):
+    await register_user(client)
+    headers = await auth_headers(client)
+
+    async def noop(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr(ai_pipeline, "run_pipeline", noop)
+    res = await submit_text(client, headers)
+    sid = res.json()["submission_id"]
+
+    res = await client.post(f"/api/trust-score/{sid}", headers=headers)
+    assert res.status_code == 502
+    assert res.json()["detail"] == "AI detection produced no result for scoring"
+
+
+async def test_get_score_without_calculation_404(client):
+    await register_user(client)
+    headers = await auth_headers(client)
+    res = await submit_text(client, headers)
+    sid = res.json()["submission_id"]
+    res = await client.get(f"/api/trust-score/{sid}", headers=headers)
+    assert res.status_code == 404
+    assert (
+        res.json()["detail"] == "No trust score has been calculated for this submission"
+    )
+
+
+async def test_calculate_trust_score_fallback_when_insert_returns_none(monkeypatch):
+    from bson import ObjectId
+
+    async def none_(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr(
+        trust_score_service.trust_score_repository, "insert_score", none_
+    )
+    monkeypatch.setattr(
+        trust_score_service.trust_score_repository, "find_by_submission_id", none_
+    )
+    result = await trust_score_service.calculate_trust_score(
+        {"submission_id": "TL-FALLBACK", "user_id": ObjectId()},
+        {"prediction": "REAL", "confidence": 0.9},
+        {"verification_status": "SUPPORTED"},
+        [],
+    )
+    assert result["submission_id"] == "TL-FALLBACK"
+    assert 0 <= result["final_score"] <= 100

@@ -91,7 +91,7 @@ python tools\train_distilbert.py    # DistilBERT (GPU recommended)
 
 ## Testing
 
-- Backend: 194 tests, 97% coverage (`pytest -q` from `backend/`; requires
+- Backend: 229 tests, 99% coverage (`pytest -q` from `backend/`; requires
   MongoDB). CI gates coverage at >= 85%.
 - AI engine: 14 unit tests (`pytest ai-engine/tests -q`; no DB or model
   artifacts needed).

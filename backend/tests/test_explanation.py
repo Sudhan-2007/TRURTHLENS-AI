@@ -1,5 +1,6 @@
 from app.db import get_ai_explanations_collection
 from app.services import (
+    ai_pipeline,
     explanation_service,
     score_explanation_service,
     summary_service,
@@ -278,3 +279,58 @@ async def test_get_without_generated_explanation(client):
     sid = res.json()["submission_id"]
     res = await client.get(f"/api/explanation/{sid}", headers=headers)
     assert res.status_code == 404
+
+
+async def test_generate_nonexistent_submission_404(client):
+    await register_user(client)
+    headers = await auth_headers(client)
+    res = await client.post("/api/explanation/TL-000000000000-ABC", headers=headers)
+    assert res.status_code == 404
+
+
+async def test_generate_bad_gateway_when_pipeline_produces_nothing(client, monkeypatch):
+    await register_user(client)
+    headers = await auth_headers(client)
+
+    async def noop(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr(ai_pipeline, "run_pipeline", noop)
+    res = await submit_text(client, headers)
+    sid = res.json()["submission_id"]
+
+    res = await client.post(f"/api/explanation/{sid}", headers=headers)
+    assert res.status_code == 502
+    assert res.json()["detail"] == "AI detection produced no result for explanation"
+
+
+async def test_generate_explanation_fallback_when_insert_returns_none(monkeypatch):
+    from bson import ObjectId
+
+    async def none_(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr(
+        explanation_service.explanation_repository, "insert_explanation", none_
+    )
+    monkeypatch.setattr(
+        explanation_service.explanation_repository, "find_by_submission_id", none_
+    )
+    result = await explanation_service.generate_explanation(
+        {"submission_id": "TL-FALLBACK", "user_id": ObjectId()},
+        {
+            "prediction": "REAL",
+            "confidence": 0.9,
+            "model_name": "m",
+            "model_version": "v",
+        },
+        {
+            "verification_status": "SUPPORTED",
+            "verification_confidence": 0.8,
+            "evidence_count": 1,
+            "official_source_count": 1,
+        },
+        {"final_score": 80, "trust_level": "HIGH"},
+        [],
+    )
+    assert result["submission_id"] == "TL-FALLBACK"
