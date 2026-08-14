@@ -36,10 +36,11 @@ default shell commands below are Windows-compatible.
 ## Commands
 
 Backend (run from `backend\`, venv `.venv\Scripts\python.exe`):
-- `..\ai-engine` tests require no DB; app tests need a running MongoDB
+- `pytest -q` (from `backend\`) — app suite (152 passing; asyncio auto mode;
+  pytest-asyncio session-scoped loops). Needs a running MongoDB
   (localhost:27017 or the compose service).
-- `pytest -q` — run the suite (152 passing; asyncio auto mode; pytest-asyncio
-  session-scoped loops).
+- `..\python -m pytest ai-engine\tests -q` (from repo root) — AI-engine unit
+  tests (14 passing; no DB or model artifacts required).
 - `uvicorn app.main:app --reload` — local dev server.
 
 Frontend (run from `frontend\`):

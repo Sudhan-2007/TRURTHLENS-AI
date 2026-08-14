@@ -92,6 +92,8 @@ python tools\train_distilbert.py    # DistilBERT (GPU recommended)
 ## Testing
 
 - Backend: 152 tests (`pytest -q` from `backend/`; requires MongoDB).
+- AI engine: 14 unit tests (`pytest ai-engine/tests -q`; no DB or model
+  artifacts needed).
 - Frontend: 7 tests, oxlint, production build (all in CI).
 - Ops: `deployment/scripts/smoke_test.py --base http://localhost`.
 

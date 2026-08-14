@@ -39,6 +39,9 @@ jobs:
           MONGODB_URI: mongodb://localhost:27017
           MONGODB_DB: truthlens_test
 
+      - name: Run AI engine unit tests
+        run: python -m pytest ai-engine/tests -q
+
       - name: Scan for committed secrets
         run: |
           if grep -rInE "(password|secret|api[_-]?key|token)[\"']?\s*[:=]\s*[\"'][^\"']{8,}" \

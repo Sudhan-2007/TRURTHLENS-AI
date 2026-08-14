@@ -939,8 +939,8 @@ The evaluation dataset should be separate from the training data.
 ### Implemented Test Suites (Phase 9)
 
 The system ships with automated suites covering unit, integration, system/e2e,
-security, and performance testing. Current backend coverage: **143 tests
-passing**; frontend: **7 component tests**.
+security, and performance testing. Current backend coverage: **152 tests
+passing**; AI engine: **14 unit tests**; frontend: **7 component tests**.
 
 | Suite | File(s) | Scope |
 | --- | --- | --- |
