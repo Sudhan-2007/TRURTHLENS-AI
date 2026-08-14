@@ -54,11 +54,15 @@ async def test_ai_metrics_recorded_after_inference(client):
 
     await register_user(client)
     headers = await auth_headers(client)
-    await submit_text(client, headers, content=(
-        "Global average temperatures have increased by more than one degree "
-        "Fahrenheit since the late 19th century. Scientists at NASA have "
-        "confirmed the planet is getting warmer every decade."
-    ))
+    await submit_text(
+        client,
+        headers,
+        content=(
+            "Global average temperatures have increased by more than one degree "
+            "Fahrenheit since the late 19th century. Scientists at NASA have "
+            "confirmed the planet is getting warmer every decade."
+        ),
+    )
 
     res = await client.get("/api/metrics")
     assert "truthlens_ai_inferences_total" in res.text

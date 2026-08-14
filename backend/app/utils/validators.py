@@ -13,9 +13,7 @@ def validate_text(content: str) -> str:
     if not content:
         raise ValueError("Content is required")
     if len(content) < TEXT_MIN_LENGTH:
-        raise ValueError(
-            f"Content must be at least {TEXT_MIN_LENGTH} characters long"
-        )
+        raise ValueError(f"Content must be at least {TEXT_MIN_LENGTH} characters long")
     if len(content) > TEXT_MAX_LENGTH:
         raise HTTPException(
             status_code=status.HTTP_413_CONTENT_TOO_LARGE,

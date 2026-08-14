@@ -1,7 +1,6 @@
 import re
 
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 
 _SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
 
@@ -52,6 +51,5 @@ def compare_sentences(text: str, reference: str) -> float:
     best = 0.0
     for sentence in sentences:
         score = compare(sentence, reference)
-        if score > best:
-            best = score
+        best = max(best, score)
     return best

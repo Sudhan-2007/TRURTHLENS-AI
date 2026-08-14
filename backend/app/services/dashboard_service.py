@@ -4,12 +4,7 @@ from . import analytics_service, history_service
 
 
 async def _recent(query: dict, limit: int = 5) -> list[dict]:
-    cursor = (
-        get_news_collection()
-        .find(query)
-        .sort("created_at", -1)
-        .limit(limit)
-    )
+    cursor = get_news_collection().find(query).sort("created_at", -1).limit(limit)
     docs = [doc async for doc in cursor]
     return await history_service.enrich_items(docs)
 

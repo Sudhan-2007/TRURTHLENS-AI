@@ -39,11 +39,16 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> list[str]:
-        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+        return [
+            origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()
+        ]
 
     @property
     def is_atlas_configured(self) -> bool:
-        return "+srv://" in self.MONGODB_URI or self.MONGODB_URI == self.MONGODB_PLACEHOLDER
+        return (
+            "+srv://" in self.MONGODB_URI
+            or self.MONGODB_URI == self.MONGODB_PLACEHOLDER
+        )
 
     @property
     def db_mode(self) -> str:
@@ -67,7 +72,11 @@ class Settings(BaseSettings):
                     "JWT_SECRET must be set to a strong random value (>=32 chars) "
                     "in production"
                 )
-            if self.MONGODB_URI in ("", self.MONGODB_PLACEHOLDER, "mongodb://localhost:27017"):
+            if self.MONGODB_URI in (
+                "",
+                self.MONGODB_PLACEHOLDER,
+                "mongodb://localhost:27017",
+            ):
                 raise ValueError(
                     "DATABASE_URL must point at a real production database, not "
                     "a placeholder or a local instance"

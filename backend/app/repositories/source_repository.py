@@ -1,4 +1,5 @@
 from bson import ObjectId
+from bson.errors import InvalidId
 
 from ..db import get_official_sources_collection
 
@@ -10,15 +11,13 @@ async def create_source(doc: dict) -> dict:
 
 
 async def find_by_domain(domain: str) -> dict | None:
-    return await get_official_sources_collection().find_one(
-        {"domain": domain.lower()}
-    )
+    return await get_official_sources_collection().find_one({"domain": domain.lower()})
 
 
 async def find_by_id(source_id: str) -> dict | None:
     try:
         oid = ObjectId(source_id)
-    except Exception:
+    except InvalidId:
         return None
     return await get_official_sources_collection().find_one({"_id": oid})
 

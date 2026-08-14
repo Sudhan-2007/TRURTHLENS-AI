@@ -52,7 +52,9 @@ async def verify_submission(
         )
 
     content = (submission.get("content") or "").strip()
-    result = await verification_service.verify_submission(submission, prediction, content)
+    result = await verification_service.verify_submission(
+        submission, prediction, content
+    )
     result["id"] = str(result.pop("_id")) if result.get("_id") else None
     if result.get("user_id") is not None:
         result["user_id"] = str(result["user_id"])
@@ -92,7 +94,11 @@ async def get_evidence(
             detail="No evidence has been collected for this submission",
         )
     serialized = [serialize_evidence(item) for item in items]
-    return {"submission_id": submission_id, "count": len(serialized), "evidence": serialized}
+    return {
+        "submission_id": submission_id,
+        "count": len(serialized),
+        "evidence": serialized,
+    }
 
 
 @sources_router.get("", response_model=dict)

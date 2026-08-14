@@ -18,9 +18,7 @@ _ALLOWED_TRUST_LEVELS = {"HIGH", "MEDIUM", "LOW", "VERY_LOW"}
 _ALLOWED_SORTS = {"created_desc", "created_asc"}
 
 
-def _validate_params(
-    prediction, verification_status, trust_level, sort
-) -> None:
+def _validate_params(prediction, verification_status, trust_level, sort) -> None:
     if prediction and prediction not in _ALLOWED_PREDICTIONS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -79,15 +77,11 @@ async def enrich_items(docs: list[dict]) -> list[dict]:
                 "status": doc.get("status"),
                 "created_at": doc.get("created_at"),
                 "updated_at": doc.get("updated_at"),
-                "ai_prediction": (ai.get(doc["submission_id"]) or {}).get(
-                    "prediction"
-                ),
-                "ai_confidence": (ai.get(doc["submission_id"]) or {}).get(
-                    "confidence"
-                ),
-                "verification_status": (verification.get(doc["submission_id"]) or {}).get(
-                    "verification_status"
-                ),
+                "ai_prediction": (ai.get(doc["submission_id"]) or {}).get("prediction"),
+                "ai_confidence": (ai.get(doc["submission_id"]) or {}).get("confidence"),
+                "verification_status": (
+                    verification.get(doc["submission_id"]) or {}
+                ).get("verification_status"),
                 "verification_confidence": (
                     verification.get(doc["submission_id"]) or {}
                 ).get("verification_confidence"),

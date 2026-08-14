@@ -165,7 +165,9 @@ async def test_history_query_validation(client):
     assert res.status_code == 422
     res = await client.get("/api/history", params={"sort": "bogus"}, headers=headers)
     assert res.status_code == 400
-    res = await client.get("/api/history", params={"prediction": "MAYBE"}, headers=headers)
+    res = await client.get(
+        "/api/history", params={"prediction": "MAYBE"}, headers=headers
+    )
     assert res.status_code == 400
 
 
@@ -268,6 +270,12 @@ def test_production_validator_accepts_strong_secret_and_real_uri():
 def test_debug_defaults_follow_environment():
     assert Settings(ENVIRONMENT="development").debug is True
     assert Settings(ENVIRONMENT="testing").debug is True
-    assert Settings(ENVIRONMENT="production", JWT_SECRET="a" * 40,
-                    MONGODB_URI="mongodb://real-host:27017").debug is False
+    assert (
+        Settings(
+            ENVIRONMENT="production",
+            JWT_SECRET="a" * 40,
+            MONGODB_URI="mongodb://real-host:27017",
+        ).debug
+        is False
+    )
     assert Settings(ENVIRONMENT="development", DEBUG=True).debug is True

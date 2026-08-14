@@ -173,9 +173,7 @@ async def test_duplicate_evidence_not_stored_twice(client):
 async def test_invalid_submission_id(client):
     await register_user(client)
     headers = await auth_headers(client)
-    res = await client.post(
-        "/api/verification/TL-000000000000-ABC", headers=headers
-    )
+    res = await client.post("/api/verification/TL-000000000000-ABC", headers=headers)
     assert res.status_code == 404
 
 
@@ -240,7 +238,9 @@ async def test_source_registration_admin_only(client):
             "updated_at": now,
         }
     )
-    admin_headers = await auth_headers(client, email="admin@example.com", password="adminpass123")
+    admin_headers = await auth_headers(
+        client, email="admin@example.com", password="adminpass123"
+    )
     res = await client.post(
         "/api/sources",
         headers=admin_headers,

@@ -35,13 +35,13 @@ async def lifespan(app: FastAPI):
     connect_db()
     try:
         await init_indexes()
-    except Exception:
-        pass
+    except Exception as exc:  # noqa: BLE001 - non-fatal: indexes may already exist
+        logger.warning("index initialization skipped: %s", exc)
     try:
         await seed_all()
         await refresh_approved_domains()
-    except Exception:
-        pass
+    except Exception as exc:  # noqa: BLE001 - non-fatal: seed data may already be present
+        logger.warning("seed step failed: %s", exc)
     logger.info(
         "startup complete environment=%s db_mode=%s db=%s",
         settings.ENVIRONMENT,
@@ -89,12 +89,15 @@ async def observability(request: Request, call_next):
 @app.middleware("http")
 async def limit_request_body(request: Request, call_next):
     content_length = request.headers.get("content-length")
-    if content_length and content_length.isdigit():
-        if int(content_length) > MAX_REQUEST_BODY_BYTES:
-            return JSONResponse(
-                status_code=413,
-                content={"detail": "Request body is too large"},
-            )
+    if (
+        content_length
+        and content_length.isdigit()
+        and int(content_length) > MAX_REQUEST_BODY_BYTES
+    ):
+        return JSONResponse(
+            status_code=413,
+            content={"detail": "Request body is too large"},
+        )
     return await call_next(request)
 
 

@@ -74,7 +74,12 @@ async def test_user_statistics_charts(client):
     body = res.json()
 
     statuses = {row["value"] for row in body["verification_distribution"]}
-    assert {"SUPPORTED", "CONTRADICTED", "PARTIALLY_SUPPORTED", "UNVERIFIED"} == statuses
+    assert {
+        "SUPPORTED",
+        "CONTRADICTED",
+        "PARTIALLY_SUPPORTED",
+        "UNVERIFIED",
+    } == statuses
 
     levels = {row["value"] for row in body["trust_score_distribution"]}
     assert {"HIGH", "MEDIUM", "LOW", "VERY_LOW"} == levels

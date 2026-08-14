@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials
@@ -42,5 +42,5 @@ async def logout(
     from ..utils.security import decode_access_token
 
     payload = decode_access_token(credentials.credentials)
-    exp = datetime.fromtimestamp(payload["exp"])
+    exp = datetime.fromtimestamp(payload["exp"], tz=UTC)
     await auth_service.blacklist_token(payload["jti"], exp)

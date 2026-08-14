@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from bson import ObjectId
 
@@ -19,15 +19,11 @@ async def find_by_id_and_user(doc_id: ObjectId, user_id: ObjectId) -> dict | Non
     return await get_news_collection().find_one({"_id": doc_id, "user_id": user_id})
 
 
-async def update_status(
-    submission_id: str, status: str, **extra
-) -> None:
-    update = {"$set": {"status": status, "updated_at": datetime.now(timezone.utc)}}
+async def update_status(submission_id: str, status: str, **extra) -> None:
+    update = {"$set": {"status": status, "updated_at": datetime.now(UTC)}}
     if extra:
         update["$set"].update(extra)
-    await get_news_collection().update_one(
-        {"submission_id": submission_id}, update
-    )
+    await get_news_collection().update_one({"submission_id": submission_id}, update)
 
 
 async def delete_by_id_and_user(doc_id: ObjectId, user_id: ObjectId) -> bool:

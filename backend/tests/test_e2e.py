@@ -1,6 +1,10 @@
 """End-to-end tests mapping to Phase 9 acceptance test cases TC-001..TC-012."""
 
-from app.db import get_ai_predictions_collection, get_news_collection, get_users_collection
+from app.db import (
+    get_ai_predictions_collection,
+    get_news_collection,
+    get_users_collection,
+)
 
 from .conftest import auth_headers, register_user
 from .test_news import submit_text

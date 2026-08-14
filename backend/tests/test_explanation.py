@@ -173,9 +173,15 @@ async def test_source_reference_accuracy():
 
 
 def test_score_explanation_levels():
-    assert "HIGH" in score_explanation_service.explain_trust_score(_fake_trust(90, "HIGH"))
-    assert "VERY_LOW" in score_explanation_service.explain_trust_score(_fake_trust(28, "VERY_LOW"))
-    assert "not absolute proof" in score_explanation_service.explain_trust_score(_fake_trust())
+    assert "HIGH" in score_explanation_service.explain_trust_score(
+        _fake_trust(90, "HIGH")
+    )
+    assert "VERY_LOW" in score_explanation_service.explain_trust_score(
+        _fake_trust(28, "VERY_LOW")
+    )
+    assert "not absolute proof" in score_explanation_service.explain_trust_score(
+        _fake_trust()
+    )
 
 
 def test_overall_result_templates():
@@ -186,7 +192,9 @@ def test_overall_result_templates():
         _fake_prediction(), _fake_verification(), _fake_trust()
     )
     assert "partially supported" in summary_service.overall_result(
-        _fake_prediction(), _fake_verification("PARTIALLY_SUPPORTED"), _fake_trust(55, "LOW")
+        _fake_prediction(),
+        _fake_verification("PARTIALLY_SUPPORTED"),
+        _fake_trust(55, "LOW"),
     )
     assert "does not mean the claim is false" in summary_service.overall_result(
         _fake_prediction(), _fake_verification("UNVERIFIED"), _fake_trust(40, "LOW")

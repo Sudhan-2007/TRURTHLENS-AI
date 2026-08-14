@@ -1,9 +1,9 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import HTTPException, status
 
-from ..db import get_users_collection, get_blacklist_collection
-from ..models.user import serialize_user, utcnow
+from ..db import get_blacklist_collection, get_users_collection
+from ..models.user import utcnow
 from ..schemas.user import Role, UserRegister, UserUpdate
 from ..utils.security import hash_password, verify_password
 
@@ -14,10 +14,11 @@ async def get_user_by_email(email: str) -> dict | None:
 
 async def get_user_by_id(user_id: str) -> dict | None:
     from bson import ObjectId
+    from bson.errors import InvalidId
 
     try:
         oid = ObjectId(user_id)
-    except Exception:
+    except InvalidId:
         return None
     return await get_users_collection().find_one({"_id": oid})
 
@@ -59,7 +60,7 @@ async def authenticate_user(email: str, password: str) -> dict | None:
 
 async def blacklist_token(jti: str, expires_at: datetime) -> None:
     await get_blacklist_collection().insert_one(
-        {"jti": jti, "exp": expires_at.replace(tzinfo=timezone.utc)}
+        {"jti": jti, "exp": expires_at.replace(tzinfo=UTC)}
     )
 
 

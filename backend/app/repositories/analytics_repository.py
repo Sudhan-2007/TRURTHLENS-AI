@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from bson import ObjectId
 
@@ -120,7 +120,7 @@ async def _trend_counts(collection, query: dict, period: str) -> list[dict]:
 
 
 def _fill_periods(rows: list[dict], period: str) -> list[dict]:
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now(UTC).date()
     counts = {row["period"]: row["count"] for row in rows}
 
     if period == "daily":
@@ -129,7 +129,11 @@ def _fill_periods(rows: list[dict], period: str) -> list[dict]:
         ]
     elif period == "weekly":
         year, week, _ = today.isocalendar()
-        current = datetime.strptime(f"{year}-W{week:02d}-1", "%G-W%V-%u").date()
+        current = (
+            datetime.strptime(f"{year}-W{week:02d}-1", "%G-W%V-%u")
+            .replace(tzinfo=UTC)
+            .date()
+        )
         labels = [
             f"{y}-W{w:02d}"
             for y, w, _ in [

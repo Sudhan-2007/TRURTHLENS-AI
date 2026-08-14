@@ -4,8 +4,6 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt import InvalidTokenError
 
-from ..config import settings
-from ..models.user import utcnow
 from ..schemas.user import Role
 from ..services.auth_service import (
     get_user_by_id,

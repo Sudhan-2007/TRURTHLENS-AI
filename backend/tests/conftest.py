@@ -1,5 +1,3 @@
-import asyncio
-
 import httpx
 import pytest
 
@@ -60,13 +58,19 @@ async def clean_db():
 
 
 async def register_user(client, **overrides):
-    payload = {"name": "Test User", "email": "test@example.com", "password": "password123"}
+    payload = {
+        "name": "Test User",
+        "email": "test@example.com",
+        "password": "password123",
+    }
     payload.update(overrides)
     return await client.post("/api/auth/register", json=payload)
 
 
 async def login(client, email="test@example.com", password="password123"):
-    return await client.post("/api/auth/login", json={"email": email, "password": password})
+    return await client.post(
+        "/api/auth/login", json={"email": email, "password": password}
+    )
 
 
 async def auth_headers(client, email="test@example.com", password="password123"):

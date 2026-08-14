@@ -49,7 +49,9 @@ def _verification_explanation(verification: dict) -> str:
             "other parts are uncertain or conflicting."
         )
     else:
-        base = "Sufficient reliable evidence matching the submitted claim was not found."
+        base = (
+            "Sufficient reliable evidence matching the submitted claim was not found."
+        )
 
     return (
         f"{base} This assessment is based on {evidence_count} matched evidence "

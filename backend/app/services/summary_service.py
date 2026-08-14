@@ -1,6 +1,4 @@
-def overall_result(
-    ai_prediction: dict, verification: dict, trust_score: dict
-) -> str:
+def overall_result(ai_prediction: dict, verification: dict, trust_score: dict) -> str:
     status = verification.get("verification_status", "UNVERIFIED")
 
     if status == "SUPPORTED":

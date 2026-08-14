@@ -54,15 +54,11 @@ async def list_history(
 
 
 @router.get("/{submission_id}", response_model=NewsOut)
-async def get_submission(
-    submission_id: str, user: dict = Depends(get_current_user)
-):
+async def get_submission(submission_id: str, user: dict = Depends(get_current_user)):
     doc = await news_service.get_submission(submission_id, user)
     return serialize_news(doc)
 
 
 @router.delete("/{submission_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_submission(
-    submission_id: str, user: dict = Depends(get_current_user)
-):
+async def delete_submission(submission_id: str, user: dict = Depends(get_current_user)):
     await news_service.delete_submission(submission_id, user)

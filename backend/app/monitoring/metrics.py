@@ -21,7 +21,9 @@ from ..config import settings
 START_TIME = time.time()
 
 UPTIME = Gauge("truthlens_uptime_seconds", "Application uptime in seconds")
-ENVIRONMENT = Gauge("truthlens_environment", "Current runtime environment (dev=0, test=1, prod=2)")
+ENVIRONMENT = Gauge(
+    "truthlens_environment", "Current runtime environment (dev=0, test=1, prod=2)"
+)
 
 REQUEST_COUNT = Counter(
     "truthlens_http_requests_total",
@@ -114,5 +116,7 @@ def record_ai_model_info(model_name: str, model_version: str, backend: str) -> N
 
 def render_metrics() -> tuple[bytes, str]:
     UPTIME.set(time.time() - START_TIME)
-    ENVIRONMENT.set(("development", "testing", "production").index(settings.ENVIRONMENT))
+    ENVIRONMENT.set(
+        ("development", "testing", "production").index(settings.ENVIRONMENT)
+    )
     return generate_latest(), CONTENT_TYPE_LATEST

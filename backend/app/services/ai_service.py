@@ -4,6 +4,7 @@ The ai-engine directory lives at the repo root and is imported under the valid
 package name 'ai_engine' via tools/ai_loader.py. Model files are loaded lazily so
 the API can start even if the models have not been trained yet.
 """
+
 import json
 import os
 import re
@@ -23,22 +24,22 @@ _TOOLS = _PROJECT_ROOT / "tools"
 if str(_TOOLS) not in sys.path:
     sys.path.insert(0, str(_TOOLS))
 
-import ai_loader  # noqa: E402
+import ai_loader
 
 ai_loader.ensure_loaded()
 
-from ai_engine.config import (  # noqa: E402
+from ai_engine.config import (
     CONFIDENCE_HIGH,
     CONFIDENCE_MEDIUM,
     MODEL_BACKEND,
     TEXT_MAX_LENGTH,
     TEXT_MIN_LENGTH,
 )
-from ai_engine.inference.predict import FakeNewsPredictor  # noqa: E402
+from ai_engine.inference.predict import FakeNewsPredictor
 
-from ..db import get_ai_predictions_collection  # noqa: E402
-from ..models.news import utcnow  # noqa: E402
-from ..monitoring import metrics  # noqa: E402
+from ..db import get_ai_predictions_collection
+from ..models.news import utcnow
+from ..monitoring import metrics
 
 _predictor: FakeNewsPredictor | None = None
 
@@ -118,18 +119,27 @@ def analyze_text(text: str) -> dict:
         "model_name": result["model_name"],
         "model_version": result["model_version"],
         "processing_time_ms": result["processing_time_ms"],
-        "summary": _summary(result["prediction"], result["confidence"], result["model_name"]),
+        "summary": _summary(
+            result["prediction"], result["confidence"], result["model_name"]
+        ),
     }
 
 
 async def extract_text_from_url(url: str) -> str:
     headers = {"User-Agent": "TruthLens-AI/1.0 (+research)"}
-    async with httpx.AsyncClient(timeout=15.0, follow_redirects=True, headers=headers) as client:
+    async with httpx.AsyncClient(
+        timeout=15.0, follow_redirects=True, headers=headers
+    ) as client:
         resp = await client.get(url)
         resp.raise_for_status()
         html = resp.text
 
-    html = re.sub(r"<script[\s\S]*?</script>|<style[\s\S]*?</style>", " ", html, flags=re.IGNORECASE)
+    html = re.sub(
+        r"<script[\s\S]*?</script>|<style[\s\S]*?</style>",
+        " ",
+        html,
+        flags=re.IGNORECASE,
+    )
     html = re.sub(r"<[^>]+>", " ", html)
     html = re.sub(r"&nbsp;|&#160;", " ", html, flags=re.IGNORECASE)
     text = re.sub(r"\s+", " ", html).strip()

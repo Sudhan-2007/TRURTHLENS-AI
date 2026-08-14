@@ -1,10 +1,9 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import jwt
 
 from app.config import settings
 from app.db import get_users_collection
-from app.utils.security import create_access_token
 
 from .conftest import auth_headers, login, register_user
 
@@ -76,20 +75,24 @@ async def test_unauthorized_api_access(client):
 
 
 async def test_invalid_jwt(client):
-    res = await client.get("/api/users/me", headers={"Authorization": "Bearer not.a.token"})
+    res = await client.get(
+        "/api/users/me", headers={"Authorization": "Bearer not.a.token"}
+    )
     assert res.status_code == 401
 
 
 async def test_expired_jwt(client):
     await register_user(client)
     user = await get_users_collection().find_one({"email": "test@example.com"})
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     token = jwt.encode(
         {"sub": str(user["_id"]), "role": "user", "exp": now - timedelta(minutes=1)},
         settings.JWT_SECRET,
         algorithm=settings.JWT_ALGORITHM,
     )
-    res = await client.get("/api/users/me", headers={"Authorization": f"Bearer {token}"})
+    res = await client.get(
+        "/api/users/me", headers={"Authorization": f"Bearer {token}"}
+    )
     assert res.status_code == 401
 
 

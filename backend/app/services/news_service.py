@@ -3,10 +3,12 @@ from fastapi import HTTPException, status
 
 from ..models.news import generate_submission_id, utcnow
 from ..repositories import news_repository
-from ..schemas.news import InputType, NewsStatus
+from ..schemas.news import NewsStatus
 
 
-async def create_submission(user: dict, input_type: str, content: str | None = None, url: str | None = None) -> dict:
+async def create_submission(
+    user: dict, input_type: str, content: str | None = None, url: str | None = None
+) -> dict:
     now = utcnow()
     doc = {
         "submission_id": generate_submission_id(),

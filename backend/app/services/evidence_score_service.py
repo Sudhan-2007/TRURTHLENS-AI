@@ -10,7 +10,9 @@ def semantic_similarity(verification: dict | None) -> float:
     return round(clamp(float(average) * 100.0), 2)
 
 
-async def evidence_quality(verification: dict | None, evidence_items: list[dict]) -> float:
+async def evidence_quality(
+    verification: dict | None, evidence_items: list[dict]
+) -> float:
     if not evidence_items:
         return 0.0
 

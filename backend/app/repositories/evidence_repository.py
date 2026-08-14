@@ -21,13 +21,10 @@ async def find_candidates(keywords: list[str], limit: int = 20) -> list[dict]:
     if not terms:
         return []
     or_clauses = [
-        {"claim": {"$regex": re_escape(term), "$options": "i"}}
-        for term in terms[:8]
+        {"claim": {"$regex": re_escape(term), "$options": "i"}} for term in terms[:8]
     ]
     cursor = (
-        get_verification_evidence_collection()
-        .find({"$or": or_clauses})
-        .limit(limit)
+        get_verification_evidence_collection().find({"$or": or_clauses}).limit(limit)
     )
     return [doc async for doc in cursor]
 

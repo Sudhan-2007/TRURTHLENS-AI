@@ -1,5 +1,3 @@
-import pytest
-
 from app.db import get_news_collection
 from app.services import news_service
 from app.utils.validators import TEXT_MAX_LENGTH, URL_MAX_LENGTH
@@ -39,7 +37,9 @@ async def test_submit_valid_text(client):
     assert body["status"] == "submitted"
     assert body["submission_id"].startswith("TL-")
 
-    stored = await get_news_collection().find_one({"submission_id": body["submission_id"]})
+    stored = await get_news_collection().find_one(
+        {"submission_id": body["submission_id"]}
+    )
     assert stored is not None
     assert stored["input_type"] == "text"
     assert stored["status"] in ("submitted", "processing", "completed")
@@ -85,7 +85,9 @@ async def test_submit_malformed_url(client):
 async def test_submit_url_exceeding_max_length(client):
     await register_user(client)
     headers = await auth_headers(client)
-    res = await submit_url(client, headers, url="https://example.com/" + "a" * URL_MAX_LENGTH)
+    res = await submit_url(
+        client, headers, url="https://example.com/" + "a" * URL_MAX_LENGTH
+    )
     assert res.status_code == 413
 
 

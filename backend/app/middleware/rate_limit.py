@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import Depends, HTTPException, status
 
@@ -19,7 +19,7 @@ def clear_rate_limit_buckets() -> None:
 
 
 def _check(user: dict, limit: int, window: int) -> None:
-    now = datetime.now(timezone.utc).timestamp()
+    now = datetime.now(UTC).timestamp()
     user_id = str(user["_id"])
     bucket = _buckets[user_id]
     bucket[:] = [ts for ts in bucket if now - ts < window]

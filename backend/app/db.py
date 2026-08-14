@@ -1,5 +1,5 @@
 from motor.motor_asyncio import AsyncIOMotorClient
-from pymongo.server_api import ServerApi
+from pymongo.errors import InvalidOperation, PyMongoError
 
 from .config import settings
 
@@ -19,7 +19,7 @@ async def ping_db() -> bool:
     try:
         await client.admin.command("ping")
         return True
-    except Exception:
+    except (InvalidOperation, PyMongoError):
         return False
 
 

@@ -156,9 +156,7 @@ async def test_duplicate_calculation_prevented(client):
     second = res.json()
     assert second["final_score"] == first["final_score"]
 
-    count = await get_trust_scores_collection().count_documents(
-        {"submission_id": sid}
-    )
+    count = await get_trust_scores_collection().count_documents({"submission_id": sid})
     assert count == 1
 
 

@@ -48,7 +48,7 @@ def final_score(components: dict) -> int:
         if value is None:
             value = 0.0
         total += clamp(value) * weight
-    return int(round(total))
+    return round(total)
 
 
 def trust_level(score: int) -> str:

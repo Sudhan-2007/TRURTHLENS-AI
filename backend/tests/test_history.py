@@ -66,7 +66,9 @@ async def test_history_filter_prediction(client):
     headers = await _setup_user(client)
     await _seed(client, headers)
 
-    res = await client.get("/api/history", params={"prediction": "FAKE"}, headers=headers)
+    res = await client.get(
+        "/api/history", params={"prediction": "FAKE"}, headers=headers
+    )
     assert res.status_code == 200
     items = res.json()["items"]
     assert items
@@ -90,7 +92,9 @@ async def test_history_filter_trust_level(client):
     headers = await _setup_user(client)
     await _seed(client, headers)
 
-    res = await client.get("/api/history", params={"trust_level": "VERY_LOW"}, headers=headers)
+    res = await client.get(
+        "/api/history", params={"trust_level": "VERY_LOW"}, headers=headers
+    )
     assert res.status_code == 200
     items = res.json()["items"]
     assert items
@@ -101,13 +105,17 @@ async def test_history_pagination(client):
     headers = await _setup_user(client)
     await _seed(client, headers)
 
-    res = await client.get("/api/history", params={"limit": 2, "skip": 0}, headers=headers)
+    res = await client.get(
+        "/api/history", params={"limit": 2, "skip": 0}, headers=headers
+    )
     assert res.status_code == 200
     first = res.json()
     assert len(first["items"]) == 2
     assert first["total"] == 3
 
-    res = await client.get("/api/history", params={"limit": 2, "skip": 2}, headers=headers)
+    res = await client.get(
+        "/api/history", params={"limit": 2, "skip": 2}, headers=headers
+    )
     second = res.json()
     assert len(second["items"]) == 1
     assert second["items"][0]["submission_id"] != first["items"][0]["submission_id"]
@@ -117,7 +125,9 @@ async def test_history_sort_ascending(client):
     headers = await _setup_user(client)
     await _seed(client, headers)
 
-    res = await client.get("/api/history", params={"sort": "created_asc"}, headers=headers)
+    res = await client.get(
+        "/api/history", params={"sort": "created_asc"}, headers=headers
+    )
     assert res.status_code == 200
     items = res.json()["items"]
     dates = [item["created_at"] for item in items]
@@ -128,7 +138,9 @@ async def test_history_invalid_filter(client):
     headers = await _setup_user(client)
     await _seed(client, headers)
 
-    res = await client.get("/api/history", params={"prediction": "MAYBE"}, headers=headers)
+    res = await client.get(
+        "/api/history", params={"prediction": "MAYBE"}, headers=headers
+    )
     assert res.status_code == 400
     res = await client.get("/api/history", params={"sort": "bogus"}, headers=headers)
     assert res.status_code == 400

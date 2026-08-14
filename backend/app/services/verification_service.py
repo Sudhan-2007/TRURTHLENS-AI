@@ -1,7 +1,7 @@
 from ..models.news import utcnow
-from ..repositories import evidence_repository, verification_repository
+from ..repositories import verification_repository
 from ..schemas.verification import VerificationStatus
-from . import claim_service, evidence_service, similarity_service, source_service
+from . import claim_service, evidence_service, similarity_service
 
 SIMILARITY_CONFIRM = 0.55
 SIMILARITY_PARTIAL = 0.30
@@ -12,7 +12,9 @@ _TRUST_FACTOR = {"high": 1.0, "medium": 0.85, "low": 0.7}
 
 
 def _classify_evidence(claim_text: str, evidence: dict) -> dict | None:
-    similarity = round(similarity_service.compare_sentences(claim_text, evidence["claim"]), 4)
+    similarity = round(
+        similarity_service.compare_sentences(claim_text, evidence["claim"]), 4
+    )
     if similarity >= SIMILARITY_CONFIRM:
         status = evidence["evidence_status"]
     elif similarity >= SIMILARITY_PARTIAL:
@@ -25,7 +27,9 @@ def _classify_evidence(claim_text: str, evidence: dict) -> dict | None:
         "claim": claim_text,
         "source_id": evidence.get("source_id"),
         "source_name": (source or {}).get("name", evidence.get("source_name", "")),
-        "source_domain": (source or {}).get("domain", evidence.get("source_domain", "")),
+        "source_domain": (source or {}).get(
+            "domain", evidence.get("source_domain", "")
+        ),
         "source_url": evidence.get("source_url"),
         "source_title": evidence.get("source_title"),
         "evidence_summary": evidence.get("evidence_summary"),
@@ -37,9 +41,16 @@ def _classify_evidence(claim_text: str, evidence: dict) -> dict | None:
 
 
 def _aggregate_status(items: list[dict]) -> str:
-    contradicted = any(i["evidence_status"] == VerificationStatus.CONTRADICTED.value for i in items)
-    supported = any(i["evidence_status"] == VerificationStatus.SUPPORTED.value for i in items)
-    partial = any(i["evidence_status"] == VerificationStatus.PARTIALLY_SUPPORTED.value for i in items)
+    contradicted = any(
+        i["evidence_status"] == VerificationStatus.CONTRADICTED.value for i in items
+    )
+    supported = any(
+        i["evidence_status"] == VerificationStatus.SUPPORTED.value for i in items
+    )
+    partial = any(
+        i["evidence_status"] == VerificationStatus.PARTIALLY_SUPPORTED.value
+        for i in items
+    )
 
     if contradicted and supported:
         return VerificationStatus.PARTIALLY_SUPPORTED.value
@@ -62,9 +73,10 @@ def _verification_confidence(items: list[dict], status: str) -> float:
         weighted += item["similarity_score"] * weight
         total_weight += weight
     base = weighted / total_weight if total_weight else 0.0
-    if status == VerificationStatus.SUPPORTED.value:
-        base = max(base, 0.60)
-    elif status == VerificationStatus.CONTRADICTED.value:
+    if (
+        status == VerificationStatus.SUPPORTED.value
+        or status == VerificationStatus.CONTRADICTED.value
+    ):
         base = max(base, 0.60)
     elif status == VerificationStatus.PARTIALLY_SUPPORTED.value:
         base = min(max(base, 0.40), 0.75)
