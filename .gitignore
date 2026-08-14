@@ -37,6 +37,7 @@ Thumbs.db
 
 # MongoDB / deployment
 *.log
+deployment/backups/
 
 # Trained models and generated datasets (reproducible via tools/ scripts)
 ai-engine/models/

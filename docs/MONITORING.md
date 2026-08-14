@@ -107,7 +107,15 @@ model version changes (`truthlens_ai_model_info` value flip).
 ### Daily
 
 - Run the database backup (see `docs/DEPLOYMENT.md` → Backup and Restore):
-  `docker compose exec backend python deployment/scripts/backup_db.py --out /backups`
+  `docker compose exec backend python deployment/scripts/backup_db.py --out /backups`.
+  On Windows hosts, register the scheduled job once (elevated PowerShell):
+  ```powershell
+  .\deployment\scripts\schedule_backup.ps1          # daily at 02:00
+  .\deployment\scripts\schedule_backup.ps1 -Time "03:30"
+  .\deployment\scripts\schedule_backup.ps1 -Unregister   # remove it
+  ```
+  It runs `deployment/scripts/run_backup.ps1` via Task Scheduler and logs to
+  `deployment\backups\backup.log`.
 - Check the health dashboard; confirm `truthlens_database_up == 1` and the AI
   backend is loaded (`ai.loaded == true` in `/api/health`).
 - Review any new `warning`-level alerts.
