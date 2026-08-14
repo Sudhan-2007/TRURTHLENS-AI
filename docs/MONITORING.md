@@ -55,20 +55,33 @@ Exposed via `backend/app/monitoring/metrics.py` and the `/api/metrics` endpoint
 
 ## Prometheus / Grafana Setup
 
-Scrape configuration (`prometheus.yml`):
+The monitoring stack ships in the repo under `deployment/monitoring/`
+(Prometheus config, alert rules, and Grafana provisioning with a pre-built
+TruthLens dashboard) and runs alongside the main stack with a second compose
+file:
 
-```yaml
-scrape_configs:
-  - job_name: truthlens
-    metrics_path: /api/metrics
-    static_configs:
-      - targets: ["truthlens-frontend:80"]
-    scrape_interval: 30s
+```bash
+# from deployment\
+docker compose -f docker-compose.monitoring.yml up -d
 ```
 
-Dashboards should surface: request rate and error rate by path, p95/p99
-latency, database up/latency, inference rate by prediction, low-confidence
-rate, and model version changes (`truthlens_ai_model_info` value flip).
+- Prometheus: `http://localhost:9090` (scrapes `frontend:80/api/metrics`).
+- Grafana: `http://localhost:3000` (default `admin`/`admin`; override
+  `GF_SECURITY_ADMIN_PASSWORD`). The datasource is auto-provisioned and the
+  "TruthLens AI — Platform Overview" dashboard loads under the TruthLens
+  folder.
+
+Files:
+
+- `deployment/monitoring/prometheus.yml` — scrape config.
+- `deployment/monitoring/rules/alerts.yml` — the alert rules below.
+- `deployment/monitoring/grafana/provisioning/` — datasource + dashboard
+  provisioning.
+- `deployment/monitoring/grafana/dashboards/truthlens.json` — dashboard.
+
+The dashboard surfaces: request rate and error rate by path, p95/p99 latency,
+database up/latency, inference rate by prediction, low-confidence rate, and
+model version changes (`truthlens_ai_model_info` value flip).
 
 ## Recommended Alerts
 

@@ -1,0 +1,64 @@
+groups:
+  - name: truthlens
+    rules:
+      - alert: BackendDown
+        expr: up{job="truthlens"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "TruthLens backend is down"
+          description: "Prometheus cannot scrape {{ $labels.instance }} for more than 1 minute."
+
+      - alert: DatabaseUnreachable
+        expr: truthlens_database_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MongoDB unreachable"
+          description: "The database connectivity gauge has been 0 for more than 1 minute."
+
+      - alert: ElevatedErrorRate
+        expr: rate(truthlens_http_errors_total[5m]) / rate(truthlens_http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Error rate above 5%"
+          description: "HTTP error rate is above 5% over the last 5 minutes."
+
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, sum(rate(truthlens_http_request_duration_seconds_bucket[5m])) by (le)) > 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "p95 latency above 3s"
+          description: "The p95 request latency has exceeded 3 seconds for 5 minutes."
+
+      - alert: AIModelFailures
+        expr: rate(truthlens_ai_errors_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AI inference errors detected"
+          description: "The AI engine has been failing inferences for 5 minutes."
+
+      - alert: LowConfidenceSpike
+        expr: rate(truthlens_ai_low_confidence_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: info
+        annotations:
+          summary: "Low-confidence predictions spiking"
+          description: "More than 10 low-confidence predictions per second over 5 minutes."
+
+      - alert: ModelVersionChange
+        expr: changes(truthlens_ai_model_info[1h]) > 0
+        labels:
+          severity: info
+        annotations:
+          summary: "AI model version changed"
+          description: "truthlens_ai_model_info changed in the last hour; verify this swap was intentional."

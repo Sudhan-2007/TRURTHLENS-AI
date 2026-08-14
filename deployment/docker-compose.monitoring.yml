@@ -1,0 +1,43 @@
+# Run from deployment\ with the TruthLens stack up:
+#   docker compose -f docker-compose.monitoring.yml up -d
+# Prometheus: http://localhost:9090   Grafana: http://localhost:3000
+# (Grafana default login admin/admin — change GF_SECURITY_ADMIN_PASSWORD.)
+#
+# Joins the external truthlens network so it can scrape frontend:80 and reach
+# the existing containers by compose service name.
+name: truthlens-monitoring
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.53.1
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/rules:/etc/prometheus/rules:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:11.5.0
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+
+volumes:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  default:
+    external: true
+    name: truthlens_truthlens
