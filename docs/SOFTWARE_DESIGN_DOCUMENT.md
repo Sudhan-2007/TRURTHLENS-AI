@@ -1124,13 +1124,18 @@ The ultimate objective is not to make users blindly trust TruthLens AI, but to e
 ### Phase 10 Completion Status
 
 Phases 1–10 are complete. The production deployment package is in place:
-Docker Compose services, container images, a CI/CD pipeline with secret
-scanning and tag-gated deploys, unauthenticated health/metrics endpoints,
-Prometheus metrics for HTTP, database, and AI inference, backup/restore and
-smoke-test scripts, and deployment/monitoring guides. Automated unit,
-integration, security, e2e, performance, and monitoring tests pass; the
-frontend builds and lints cleanly. Deployment artifacts are validated in CI
-(Docker is not required for local development).
+Docker Compose services pinned to reproducible image tags (`mongo:7.0.20`),
+container images, a CI/CD pipeline with secret scanning and tag-gated deploys,
+a real SSH-based production deploy job that pulls GHCR images and brings up the
+app plus the monitoring stack, unauthenticated health/metrics endpoints,
+Prometheus metrics for HTTP, database, and AI inference, a shipped
+Prometheus/Grafana/Alertmanager monitoring stack with a pre-built dashboard and
+alert rules, backup/restore and smoke-test scripts with scheduled daily backups
+(container-based cron on Linux, Task Scheduler helper on Windows), and
+deployment/monitoring guides. Automated unit, integration, security, e2e,
+performance, and monitoring tests pass; the frontend builds and lints cleanly.
+Deployment artifacts are validated in CI (Docker is not required for local
+development). The AI baseline model retraining is reproducible byte-for-byte.
 
 ### Core Principle
 
