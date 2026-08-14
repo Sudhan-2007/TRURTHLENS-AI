@@ -105,7 +105,8 @@ model version changes (`truthlens_ai_model_info` value flip).
 
 ### Daily
 
-- Run the database backup: `python deployment/scripts/backup_db.py`
+- Run the database backup (see `docs/DEPLOYMENT.md` → Backup and Restore):
+  `docker compose exec backend python deployment/scripts/backup_db.py --out /backups`
 - Check the health dashboard; confirm `truthlens_database_up == 1` and the AI
   backend is loaded (`ai.loaded == true` in `/api/health`).
 - Review any new `warning`-level alerts.

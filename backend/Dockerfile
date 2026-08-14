@@ -23,10 +23,13 @@ RUN pip install --no-cache-dir \
 COPY backend/app ./app
 COPY ai-engine /app/ai-engine
 COPY tools /app/tools
+COPY deployment/scripts ./deployment/scripts
 
 # Non-root runtime user (container must not run as root)
 RUN useradd --create-home --shell /usr/sbin/nologin appuser \
-    && chown -R appuser:appuser /app
+    && chown -R appuser:appuser /app \
+    && mkdir -p /backups \
+    && chown -R appuser:appuser /backups
 
 USER appuser
 

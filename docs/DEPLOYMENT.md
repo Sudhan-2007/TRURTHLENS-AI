@@ -145,14 +145,23 @@ still refuses a placeholder JWT secret or local database URL.
 
 ## Backup and Restore
 
-Run from a machine that can reach the database (inside the backend container or
-the backend venv):
+The backend image ships the ops scripts (`deployment/scripts/`) and the compose
+setup mounts a persistent `backup-data` volume at `/backups`, so scheduled
+backups run from inside the backend container with its `DATABASE_URL` already
+configured:
 
 ```bash
-# Daily backup (all collections -> ./deployment/backups/truthlens_<timestamp>/)
-python deployment/scripts/backup_db.py --out ./deployment/backups
+# Manual backup (writes to the persistent backup-data volume)
+docker compose exec backend python deployment/scripts/backup_db.py --out /backups
 
-# Restore from a backup directory (--drop wipes target collections first)
+# Daily schedule (host crontab, e.g. 02:00 UTC)
+0 2 * * * cd /opt/truthlens && docker compose exec -T backend python deployment/scripts/backup_db.py --out /backups >> /var/log/truthlens-backup.log 2>&1
+```
+
+Restore reads a local directory (not the container volume):
+
+```bash
+# From a machine with the backend venv and access to the database:
 python deployment/scripts/restore_db.py --backup ./deployment/backups/truthlens_20260812_000000 --drop
 ```
 

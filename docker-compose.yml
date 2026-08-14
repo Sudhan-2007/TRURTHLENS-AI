@@ -41,6 +41,8 @@ services:
       SOURCE_API_KEYS: ${SOURCE_API_KEYS:-}
     volumes:
       - ./ai-engine/models:/app/ai-engine/models:ro
+      # Persistent backups: scheduled runs of backup_db.py write here.
+      - backup-data:/backups
     depends_on:
       mongodb:
         condition: service_healthy
@@ -71,6 +73,7 @@ services:
 
 volumes:
   mongo-data:
+  backup-data:
 
 networks:
   truthlens:
