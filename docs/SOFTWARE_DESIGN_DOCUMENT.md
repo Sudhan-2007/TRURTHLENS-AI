@@ -940,7 +940,7 @@ The evaluation dataset should be separate from the training data.
 
 The system ships with automated suites covering unit, integration, system/e2e,
 security, and performance testing. Current backend coverage: **152 tests
-passing**; AI engine: **14 unit tests**; frontend: **7 component tests**.
+passing**; AI engine: **14 unit tests**; frontend: **17 component tests**.
 
 | Suite | File(s) | Scope |
 | --- | --- | --- |
@@ -949,7 +949,7 @@ passing**; AI engine: **14 unit tests**; frontend: **7 component tests**.
 | Security | `tests/test_security.py` | Unauthenticated access matrix, cross-user (IDOR) denial across modules, admin RBAC, query validation/injection, oversized-body 413, analytics rate-limit 429, no hash/internal-error leakage, production secret guard |
 | E2E / Acceptance | `tests/test_e2e.py` | TC-001…TC-012 end-to-end workflow (register → login → submit → AI → verify → score → explain → history → dashboard → admin RBAC → cross-user isolation) |
 | Performance | `tests/test_performance.py` | Latency smoke budgets for health, auth, submit pipeline, and history queries |
-| Frontend | `src/components/__tests__/*.test.jsx` (Vitest + Testing Library) | `TrustScore` empty/scored/interaction states, `StatsCard` rendering |
+| Frontend | `src/components/__tests__/*.test.jsx` (Vitest + Testing Library) | `TrustScore` empty/scored/interaction states, `StatsCard` rendering, `HistoryTable` empty/badge/link/delete behavior, `EvidenceList` empty/badge/similarity/source-link states |
 
 ### Quality Gates (Phase 9)
 
