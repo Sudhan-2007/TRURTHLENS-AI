@@ -3,7 +3,8 @@
 # Prometheus: http://localhost:9090   Grafana: http://localhost:3000
 # Alertmanager: http://localhost:9093 (web UI; alerts need a receiver URL in
 # ./monitoring/alertmanager.yml)
-# (Grafana default login admin/admin — change GF_SECURITY_ADMIN_PASSWORD.)
+# (Grafana default login admin/admin — set GRAFANA_ADMIN_PASSWORD in .env to
+# override it on shared deployments.)
 #
 # Joins the external truthlens network so it can scrape frontend:80 and reach
 # the existing containers by compose service name.
@@ -37,7 +38,8 @@ services:
     image: grafana/grafana:11.5.0
     restart: unless-stopped
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      # Override on any shared deployment via GRAFANA_ADMIN_PASSWORD in .env.
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro

@@ -66,8 +66,9 @@ docker compose -f docker-compose.monitoring.yml up -d
 ```
 
 - Prometheus: `http://localhost:9090` (scrapes `frontend:80/api/metrics`).
-- Grafana: `http://localhost:3000` (default `admin`/`admin`; override
-  `GF_SECURITY_ADMIN_PASSWORD`). The datasource is auto-provisioned and the
+- Grafana: `http://localhost:3000` (default `admin`/`admin`; set
+  `GRAFANA_ADMIN_PASSWORD` in `.env` next to the monitoring compose file on
+  shared deployments). The datasource is auto-provisioned and the
   "TruthLens AI — Platform Overview" dashboard loads under the TruthLens
   folder.
 - Alertmanager: `http://localhost:9093`. Alerts route to the `default`
