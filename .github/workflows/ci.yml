@@ -15,7 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     services:
       mongodb:
-        image: mongo:7
+        # Pinned to the immutable patch tag used in docker-compose.yml.
+        image: mongo:7.0.20
         ports:
           - 27017:27017
     steps:

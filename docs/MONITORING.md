@@ -70,11 +70,17 @@ docker compose -f docker-compose.monitoring.yml up -d
   `GF_SECURITY_ADMIN_PASSWORD`). The datasource is auto-provisioned and the
   "TruthLens AI — Platform Overview" dashboard loads under the TruthLens
   folder.
+- Alertmanager: `http://localhost:9093`. Alerts route to the `default`
+  receiver; set your destination URL in
+  `deployment/monitoring/alertmanager.yml` (e.g. Slack/PagerDuty/email
+  webhook) and restart the container.
 
 Files:
 
-- `deployment/monitoring/prometheus.yml` — scrape config.
+- `deployment/monitoring/prometheus.yml` — scrape config + alertmanager
+  wiring.
 - `deployment/monitoring/rules/alerts.yml` — the alert rules below.
+- `deployment/monitoring/alertmanager.yml` — routing/receiver config.
 - `deployment/monitoring/grafana/provisioning/` — datasource + dashboard
   provisioning.
 - `deployment/monitoring/grafana/dashboards/truthlens.json` — dashboard.

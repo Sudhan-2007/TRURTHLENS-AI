@@ -1,6 +1,8 @@
 # Run from deployment\ with the TruthLens stack up:
 #   docker compose -f docker-compose.monitoring.yml up -d
 # Prometheus: http://localhost:9090   Grafana: http://localhost:3000
+# Alertmanager: http://localhost:9093 (web UI; alerts need a receiver URL in
+# ./monitoring/alertmanager.yml)
 # (Grafana default login admin/admin — change GF_SECURITY_ADMIN_PASSWORD.)
 #
 # Joins the external truthlens network so it can scrape frontend:80 and reach
@@ -19,6 +21,17 @@ services:
       - prometheus-data:/prometheus
     ports:
       - "9090:9090"
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --web.external-url=http://localhost:9093
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports:
+      - "9093:9093"
 
   grafana:
     image: grafana/grafana:11.5.0
