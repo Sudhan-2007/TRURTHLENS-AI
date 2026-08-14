@@ -34,10 +34,18 @@ export default function Verify() {
         setError(`News text must be at least ${TEXT_MIN} characters.`)
         return
       }
+      if (content.length > TEXT_MAX) {
+        setError(`News text must be at most ${TEXT_MAX} characters.`)
+        return
+      }
     } else {
       const trimmed = url.trim()
       if (!/^https?:\/\/.+\..+/.test(trimmed)) {
         setError('Enter a valid URL starting with http:// or https://')
+        return
+      }
+      if (trimmed.length > URL_MAX) {
+        setError(`URL must be at most ${URL_MAX} characters.`)
         return
       }
     }
@@ -88,7 +96,7 @@ export default function Verify() {
 
           {error && <p className="alert-error">{error}</p>}
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+          <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-5">
             {inputType === 'text' ? (
               <div>
                 <label className="label" htmlFor="content">News text</label>
