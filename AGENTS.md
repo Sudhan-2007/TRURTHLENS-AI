@@ -36,9 +36,10 @@ default shell commands below are Windows-compatible.
 ## Commands
 
 Backend (run from `backend\`, venv `.venv\Scripts\python.exe`):
-- `pytest -q` (from `backend\`) — app suite (154 passing; asyncio auto mode;
+- `pytest -q` (from `backend\`) — app suite (178 passing; asyncio auto mode;
   pytest-asyncio session-scoped loops). Needs a running MongoDB
-  (localhost:27017 or the compose service).
+  (localhost:27017 or the compose service). Coverage: 93% (module `app`);
+  CI gates it at >= 85% via `pytest --cov=app --cov-fail-under=85`.
 - `..\python -m pytest ai-engine\tests -q` (from repo root) — AI-engine unit
   tests (14 passing; no DB or model artifacts required).
 - `ruff check app tests` + `ruff format --check app tests` — lint gate (clean;

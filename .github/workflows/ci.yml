@@ -36,9 +36,9 @@ jobs:
           ruff check app tests
           ruff format --check app tests
 
-      - name: Run backend test suite
+      - name: Run backend test suite (coverage gate >= 85%)
         working-directory: backend
-        run: pytest -q
+        run: pytest --cov=app --cov-report=term --cov-fail-under=85 -q
         env:
           MONGODB_URI: mongodb://localhost:27017
           MONGODB_DB: truthlens_test
