@@ -98,6 +98,9 @@ docker compose exec backend python deployment/scripts/smoke_test.py --base http:
 3. **Docker images** — on `main` and `v*` tags, builds and pushes the
    `backend` and `frontend` images to `ghcr.io` (login-only on `main`).
 4. **Deploy** — on `v*` tags only, runs in the `production` environment gate.
+   Copies `docker-compose.yml` and a rendered `.env` to the host, pulls the
+   tagged GHCR images, brings the stack up, and runs the smoke test against the
+   public URL.
 
 ### Release Process
 
@@ -106,8 +109,39 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-The deploy job applies the tagged images to the production host and runs the
-post-deployment smoke test.
+The deploy job pulls the tagged images onto the production host
+(`docker compose pull`), restarts the stack, and runs the post-deployment
+smoke test.
+
+### Production Host Setup (one-time)
+
+1. Install Docker Engine + Compose v2 on the target host.
+2. Create the release directory: `mkdir -p /opt/truthlens`.
+3. Mount or copy the trained models so the backend can reach them, e.g.
+   `rsync -av ./ai-engine/models/ root@host:/opt/truthlens/ai-engine/models/`
+   (the compose setup mounts them read-only into the container).
+4. Configure the GitHub Actions secrets below.
+
+### Required GitHub Secrets
+
+Set these on the `production` environment (Settings → Environments → production):
+
+| Secret | Purpose |
+| --- | --- |
+| `PROD_HOST` | Production host IP or hostname |
+| `PROD_USER` | SSH user with Docker access |
+| `PROD_SSH_PRIVATE_KEY` | Deploy SSH private key |
+| `PROD_KNOWN_HOSTS` | Host fingerprint (from `ssh-keyscan`) |
+| `PROD_URL` | Public base URL for the post-deploy smoke test (e.g. `https://truthlens.example.com`) |
+| `PROD_JWT_SECRET` | ≥ 32 chars; never reuse the local secret |
+| `PROD_DATABASE_URL` | MongoDB connection string (Atlas or a managed host) |
+| `PROD_MONGODB_DB` | Production database name |
+| `PROD_CORS_ORIGINS` | Comma-separated allowed browser origins |
+| `PROD_VITE_API_BASE_URL` | Usually empty (same-origin nginx proxy) |
+| `GHCR_TOKEN` | GitHub PAT with `read:packages` so the host can pull images |
+
+The deploy job interpolates these into the host `.env`; production startup
+still refuses a placeholder JWT secret or local database URL.
 
 ## Backup and Restore
 

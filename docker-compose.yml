@@ -17,6 +17,10 @@ services:
       - truthlens
 
   backend:
+    # Local `docker compose build` tags this default; a production host sets
+    # BACKEND_IMAGE to the GHCR tag (e.g. ghcr.io/org/repo/backend:sha) and
+    # runs `docker compose pull` to deploy without building on the host.
+    image: ${BACKEND_IMAGE:-truthlens-backend:latest}
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -50,6 +54,7 @@ services:
       - truthlens
 
   frontend:
+    image: ${FRONTEND_IMAGE:-truthlens-frontend:latest}
     build:
       context: .
       dockerfile: frontend/Dockerfile
