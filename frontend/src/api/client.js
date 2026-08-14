@@ -6,12 +6,20 @@ function getToken() {
   return localStorage.getItem('token')
 }
 
+function sessionInvalidated() {
+  localStorage.removeItem('token')
+  window.dispatchEvent(new Event('auth:unauthorized'))
+}
+
 async function request(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...options.headers }
   const token = getToken()
   if (token) headers.Authorization = `Bearer ${token}`
 
   const res = await fetch(`${API_BASE_URL}${path}`, { ...options, headers })
+
+  // A 401 anywhere but login means the session is stale or revoked.
+  if (res.status === 401 && path !== '/api/auth/login') sessionInvalidated()
 
   if (res.status === 204) return null
 
