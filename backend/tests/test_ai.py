@@ -147,3 +147,47 @@ def test_confidence_level_mapping():
     assert ai_service.confidence_level(0.80) == "high"
     assert ai_service.confidence_level(0.70) == "medium"
     assert ai_service.confidence_level(0.59) == "low"
+
+
+def test_analyze_text_records_error_on_predictor_failure(monkeypatch):
+    def boom(*args, **kwargs):
+        raise RuntimeError("predictor down")
+
+    monkeypatch.setattr(ai_service, "_get_predictor", boom)
+    with pytest.raises(RuntimeError, match="predictor down"):
+        ai_service.analyze_text(REAL_TEXT)
+
+
+async def test_extract_text_from_url_strips_html(monkeypatch):
+    class FakeResponse:
+        text = (
+            "<html><body><p>Hello <b>world</b></p>"
+            "<script>var x = 1;</script>&nbsp;&#160;  here</body></html>"
+        )
+
+        def raise_for_status(self):
+            return None
+
+    class FakeAsyncClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *exc):
+            return None
+
+        async def get(self, url):
+            return FakeResponse()
+
+    monkeypatch.setattr(ai_service.httpx, "AsyncClient", FakeAsyncClient)
+    text = await ai_service.extract_text_from_url("https://example.com")
+    assert "Hello world here" in text
+    assert "<script" not in text
+
+
+def test_load_report_missing_path_returns_none():
+    from pathlib import Path
+
+    assert ai_service._load_report(Path("does-not-exist-metrics.json")) is None

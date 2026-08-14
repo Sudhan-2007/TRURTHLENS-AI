@@ -4,6 +4,8 @@ import jwt
 
 from app.config import settings
 from app.db import get_users_collection
+from app.services import auth_service
+from app.utils import security
 
 from .conftest import auth_headers, login, register_user
 
@@ -135,6 +137,78 @@ async def test_update_profile_conflict(client):
         "/api/users/me", headers=headers, json={"email": "second@example.com"}
     )
     assert res.status_code == 409
+
+
+async def test_update_profile_not_found(client, monkeypatch):
+    await register_user(client)
+    headers = await auth_headers(client)
+
+    async def none_(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr(auth_service, "update_user", none_)
+    res = await client.put("/api/users/me", headers=headers, json={"name": "Updated"})
+    assert res.status_code == 404
+    assert res.json()["detail"] == "User not found"
+
+
+async def test_update_profile_new_email(client):
+    await register_user(client)
+    headers = await auth_headers(client)
+    res = await client.put(
+        "/api/users/me", headers=headers, json={"email": "brandnew@example.com"}
+    )
+    assert res.status_code == 200
+    assert res.json()["email"] == "brandnew@example.com"
+
+
+async def test_update_profile_password_validation(client):
+    await register_user(client)
+    headers = await auth_headers(client)
+
+    res = await client.put("/api/users/me", headers=headers, json={"password": "short"})
+    assert res.status_code == 422
+    res = await client.put(
+        "/api/users/me", headers=headers, json={"password": "!!!!!!!!"}
+    )
+    assert res.status_code == 422
+    res = await client.put("/api/users/me", headers=headers, json={"password": None})
+    assert res.status_code == 200
+
+
+async def test_update_user_missing_returns_none():
+    from bson import ObjectId
+
+    from app.schemas.user import UserUpdate
+
+    assert (
+        await auth_service.update_user(str(ObjectId()), UserUpdate(name="New Name"))
+        is None
+    )
+
+
+async def test_inactive_user_login_401(client):
+    await register_user(client)
+    await get_users_collection().update_one(
+        {"email": "test@example.com"}, {"$set": {"is_active": False}}
+    )
+    res = await login(client)
+    assert res.status_code == 401
+
+
+async def test_deactivated_user_rejected_403(client):
+    await register_user(client)
+    headers = await auth_headers(client)
+    await get_users_collection().update_one(
+        {"email": "test@example.com"}, {"$set": {"is_active": False}}
+    )
+    res = await client.get("/api/users/me", headers=headers)
+    assert res.status_code == 403
+    assert res.json()["detail"] == "User account is deactivated"
+
+
+def test_verify_password_rejects_malformed_hash():
+    assert security.verify_password("password123", "not-a-bcrypt-hash") is False
 
 
 async def test_user_role_authorization(client):

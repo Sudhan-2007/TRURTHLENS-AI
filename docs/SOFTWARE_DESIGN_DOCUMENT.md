@@ -939,8 +939,8 @@ The evaluation dataset should be separate from the training data.
 ### Implemented Test Suites (Phase 9)
 
 The system ships with automated suites covering unit, integration, system/e2e,
-security, and performance testing. Current backend coverage: **178 tests
-passing at 93% coverage** (CI gates >= 85%); AI engine: **14 unit tests**;
+security, and performance testing. Current backend coverage: **194 tests
+passing at 97% coverage** (CI gates >= 85%); AI engine: **14 unit tests**;
 frontend: **46 component tests**.
 
 | Suite | File(s) | Scope |
@@ -956,7 +956,7 @@ frontend: **46 component tests**.
 
 1. `cd backend && .venv\Scripts\python.exe -m pytest -q` — all backend tests pass.
 2. `cd backend && ruff check app tests && ruff format --check app tests` — lint gate.
-3. `cd backend && pytest --cov=app --cov-fail-under=85 -q` — coverage gate (currently 93%).
+3. `cd backend && pytest --cov=app --cov-fail-under=85 -q` — coverage gate (currently 97%).
 3. `cd frontend && npm run test` — all component tests pass.
 4. `cd frontend && npm run build` — production build succeeds.
 5. `cd frontend && npm run lint` — 0 warnings / 0 errors.

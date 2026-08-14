@@ -99,6 +99,18 @@ def test_trust_level_boundaries():
     assert score_calculator.trust_level(39) == "VERY_LOW"
 
 
+def test_score_calculator_none_and_invalid_inputs():
+    assert score_calculator.clamp(None) == 0.0
+    assert score_calculator.ai_assessment(None) == 0.0
+    assert (
+        score_calculator.ai_assessment({"prediction": "UNKNOWN", "confidence": 0.9})
+        == 0.0
+    )
+    assert score_calculator.ai_assessment({"prediction": "REAL"}) == 0.0
+    assert score_calculator.verification_score(None) == 0.0
+    assert score_calculator.verification_score({"verification_status": "BOGUS"}) == 0.0
+
+
 async def test_supported_evidence_scores_high(client):
     await register_user(client)
     headers = await auth_headers(client)

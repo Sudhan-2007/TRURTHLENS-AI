@@ -149,6 +149,22 @@ async def test_admin_role_update_with_malformed_user_id(client):
     assert res.json()["detail"] == "User not found"
 
 
+async def test_admin_changes_user_role(client):
+    await _setup_user(client, name="Target", email="target@example.com")
+    await _setup_user(client, name="Admin", email="test@example.com")
+    headers = await _make_admin(client, email="test@example.com")
+
+    target = await get_users_collection().find_one({"email": "target@example.com"})
+    target_id = str(target["_id"])
+
+    res = await client.put(f"/api/users/{target_id}/role?role=admin", headers=headers)
+    assert res.status_code == 200
+    assert res.json()["role"] == "admin"
+
+    user = await get_users_collection().find_one({"email": "target@example.com"})
+    assert user["role"] == "admin"
+
+
 async def test_admin_can_register_official_source(client):
     headers = await _setup_user(client)
     headers = await _make_admin(client)
