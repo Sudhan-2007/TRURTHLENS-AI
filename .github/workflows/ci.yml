@@ -87,6 +87,9 @@ jobs:
       - name: Validate compose against the example environment
         run: docker compose --env-file .env.example config --quiet
 
+      - name: Validate the monitoring compose stack
+        run: docker compose -f deployment/docker-compose.monitoring.yml config --quiet
+
   docker-images:
     needs: [backend-tests, frontend-checks, deployment-checks]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))

@@ -58,7 +58,7 @@ deploy job or the host environment; **never commit `.env` files**.
 | `JWT_SECRET` | yes | ≥ 32 chars; production validator rejects `change-me` |
 | `JWT_EXPIRE_MINUTES` | no | Token lifetime |
 | `AI_MODEL_PATH` | no | Overrides the DistilBERT model directory |
-| `TRUTHLENS_MODEL_BACKEND` | no | `transformer` or `baseline` |
+| `TRUTHLENS_MODEL_BACKEND` | no | `distilbert` (default) or `baseline` |
 | `SOURCE_API_KEYS` | no | JSON map of optional source API keys |
 | `HTTP_PORT` | no | Host port for the frontend (default `80`) |
 
