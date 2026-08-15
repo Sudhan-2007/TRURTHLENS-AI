@@ -1141,6 +1141,14 @@ performance, and monitoring tests pass; the frontend builds and lints cleanly.
 Deployment artifacts are validated in CI (Docker is not required for local
 development). The AI baseline model retraining is reproducible byte-for-byte.
 
+### Phase 11 Proposed Scope (Active)
+
+1. **User Feedback Loop**: Allow users to report incorrect assessments, rate explanations, and provide missing evidence to improve the platform's dataset.
+2. **Multilingual Processing**: Add robust language detection and initial support for verifying non-English news content (e.g. Tamil, Hindi).
+3. **Advanced Image Verification (OCR)**: Introduce pipelines to extract claims directly from uploaded images or screenshots containing text.
+4. **Browser Extension API APIs**: Prepare the backend to seamlessly integrate with a future Chrome/Firefox extension (stateless quick-verification endpoints).
+5. **Continuous Model Retraining**: Automate the ML training pipeline to incorporate validated user feedback and new ground-truth datasets on a monthly cadence.
+
 ### Core Principle
 
 > **TruthLens AI — Don't just trust the news. See the evidence.**
