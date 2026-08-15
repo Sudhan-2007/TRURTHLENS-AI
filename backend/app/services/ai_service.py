@@ -59,6 +59,11 @@ def _get_predictor() -> FakeNewsPredictor:
     return _predictor
 
 
+def preload_model() -> None:
+    """Preload the AI model into memory."""
+    _get_predictor()
+
+
 def model_available() -> dict:
     """Return model availability/version info without triggering a full load."""
     from ai_engine.config import DISTILBERT_MODEL_DIR

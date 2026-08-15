@@ -42,6 +42,10 @@ async def lifespan(app: FastAPI):
         await refresh_approved_domains()
     except Exception as exc:  # noqa: BLE001 - non-fatal: seed data may already be present
         logger.warning("seed step failed: %s", exc)
+
+    logger.info("preloading AI model...")
+    ai_service.preload_model()
+
     logger.info(
         "startup complete environment=%s db_mode=%s db=%s",
         settings.ENVIRONMENT,
