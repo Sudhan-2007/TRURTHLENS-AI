@@ -10,6 +10,8 @@ from .api import ai as ai_router
 from .api import auth as auth_router
 from .api import dashboard as dashboard_router
 from .api import explanation as explanation_router
+from .api import extension as extension_router
+from .api import feedback as feedback_router
 from .api import history as history_router
 from .api import news as news_router
 from .api import trust_score as trust_score_router
@@ -176,3 +178,5 @@ app.include_router(trust_score_router.router)
 app.include_router(explanation_router.router)
 app.include_router(dashboard_router.router)
 app.include_router(history_router.router)
+app.include_router(feedback_router.router)
+app.include_router(extension_router.router)

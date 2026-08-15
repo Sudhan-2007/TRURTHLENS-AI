@@ -62,6 +62,17 @@ async def get_current_user(
     return user
 
 
+async def get_optional_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+) -> dict | None:
+    if credentials is None:
+        return None
+    try:
+        return await get_current_user(credentials)
+    except HTTPException:
+        return None
+
+
 async def require_admin(user: dict = Depends(get_current_user)) -> dict:
     if user.get("role") != Role.ADMIN.value:
         logger.warning(

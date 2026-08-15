@@ -11,6 +11,15 @@ MAX_EVIDENCE = 8
 _TRUST_FACTOR = {"high": 1.0, "medium": 0.85, "low": 0.7}
 
 
+async def verify_claims(claims: list[str]) -> dict:
+    # Stateless verification for quick check
+    candidates = await evidence_service.search_internal([{"text": c} for c in claims])
+    return {
+        "evidence_count": len(candidates),
+        "verification_status": "Unverified" if not candidates else "Partially Supported",
+    }
+
+
 def _classify_evidence(claim_text: str, evidence: dict) -> dict | None:
     similarity = round(
         similarity_service.compare_sentences(claim_text, evidence["claim"]), 4

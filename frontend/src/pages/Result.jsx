@@ -5,6 +5,7 @@ import { statusStyles, verificationStyles, verdictStyles } from '../constants/st
 import EvidenceList from '../components/result/EvidenceList'
 import Explanation from '../components/result/Explanation'
 import TrustScore from '../components/result/TrustScore'
+import FeedbackModal from '../components/result/FeedbackModal'
 
 const verificationBarStyles = {
   SUPPORTED: 'bg-green-500',
@@ -128,6 +129,7 @@ export default function Result() {
   const [explanationLoading, setExplanationLoading] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
 
   async function loadVerification() {
     try {
@@ -371,11 +373,20 @@ export default function Result() {
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <Link to="/verify" className="btn-primary">Verify another</Link>
+          <button onClick={() => setIsFeedbackOpen(true)} className="btn-secondary">
+            Report Issue / Provide Feedback
+          </button>
           <button onClick={handleDelete} className="btn-secondary text-red-600 hover:bg-red-50">
             Delete submission
           </button>
         </div>
       </div>
+      
+      <FeedbackModal 
+        isOpen={isFeedbackOpen} 
+        onClose={() => setIsFeedbackOpen(false)} 
+        submissionId={submissionId} 
+      />
     </div>
   )
 }

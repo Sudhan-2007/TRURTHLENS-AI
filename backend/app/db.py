@@ -77,6 +77,12 @@ def get_ai_explanations_collection():
     return db["ai_explanations"]
 
 
+def get_feedback_collection():
+    if db is None:
+        raise RuntimeError("Database not connected")
+    return db["feedback"]
+
+
 async def init_indexes() -> None:
     users = get_users_collection()
     await users.create_index("email", unique=True)
@@ -98,6 +104,8 @@ async def init_indexes() -> None:
     await trust_scores.create_index("submission_id", unique=True)
     explanations = get_ai_explanations_collection()
     await explanations.create_index("submission_id", unique=True)
+    feedback = get_feedback_collection()
+    await feedback.create_index("submission_id")
 
 
 def close_db() -> None:
