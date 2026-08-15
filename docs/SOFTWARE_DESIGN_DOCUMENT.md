@@ -941,7 +941,8 @@ The evaluation dataset should be separate from the training data.
 The system ships with automated suites covering unit, integration, system/e2e,
 security, and performance testing. Current backend coverage: **229 tests
 passing at 99% coverage** (CI gates >= 85%); AI engine: **14 unit tests**;
-frontend: **46 component tests**.
+frontend: **107 component tests at 93% coverage** (CI gates >= 80% lines and
+>= 75% branches).
 
 | Suite | File(s) | Scope |
 | --- | --- | --- |
@@ -950,14 +951,14 @@ frontend: **46 component tests**.
 | Security | `tests/test_security.py` | Unauthenticated access matrix, cross-user (IDOR) denial across modules, admin RBAC, query validation/injection, oversized-body 413, analytics rate-limit 429, no hash/internal-error leakage, production secret guard |
 | E2E / Acceptance | `tests/test_e2e.py` | TC-001…TC-012 end-to-end workflow (register → login → submit → AI → verify → score → explain → history → dashboard → admin RBAC → cross-user isolation) |
 | Performance | `tests/test_performance.py` | Latency smoke budgets for health, auth, submit pipeline, and history queries |
-| Frontend | `src/components/__tests__/*.test.jsx`, `src/api/client.test.js`, `src/pages/Verify.test.jsx` (Vitest + Testing Library) | `TrustScore` empty/scored/interaction states, `StatsCard` rendering, `HistoryTable` empty/badge/link/delete behavior, `EvidenceList` empty/badge/similarity/source-link states, `ProtectedRoute` loading/redirect/authenticated states, `Navbar` auth-dependent links/admin/logout, `Explanation` empty/generated/limitations states, `SourceList` empty/source metadata/link states, `api client` token attachment, 204/error handling, and 401 session invalidation, `Verify` min/max/bad-URL validation and submit navigation |
+| Frontend | `src/components/__tests__/*.test.jsx`, `src/components/dashboard/*.test.jsx`, `src/api/client.test.js`, `src/context/AuthContext.test.jsx`, `src/App.test.jsx`, `src/pages/*.test.jsx` (Vitest + Testing Library) | All components (TrustScore, StatsCard, HistoryTable, EvidenceList, ProtectedRoute, Navbar, Explanation, SourceList, Layout, Footer, VerificationChart, RecentActivity), the API client (token, 204/error handling, 401 invalidation, every endpoint), AuthContext session restore/invalidation/login/logout, App routing incl. protected routes, and every page (Login, Register, Verify, Home, Profile, History, Dashboard, AdminDashboard, Result) |
 
 ### Quality Gates (Phase 9)
 
 1. `cd backend && .venv\Scripts\python.exe -m pytest -q` — all backend tests pass.
 2. `cd backend && ruff check app tests && ruff format --check app tests` — lint gate.
 3. `cd backend && pytest --cov=app --cov-fail-under=85 -q` — coverage gate (currently 99%).
-3. `cd frontend && npm run test` — all component tests pass.
+3. `cd frontend && npm run test:coverage` — component tests pass and the coverage gate holds (>= 80% lines / >= 75% branches; currently 93%).
 4. `cd frontend && npm run build` — production build succeeds.
 5. `cd frontend && npm run lint` — 0 warnings / 0 errors.
 5. No test may depend on external network services; MongoDB tests run against the local test database and are fully seeded/cleaned per test.

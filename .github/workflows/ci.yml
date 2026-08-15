@@ -76,9 +76,9 @@ jobs:
         working-directory: frontend
         run: npm run lint
 
-      - name: Unit tests
+      - name: Unit tests (coverage gate: >=80% lines, >=75% branches)
         working-directory: frontend
-        run: npm run test
+        run: npm run test:coverage
 
       - name: Production build
         working-directory: frontend

@@ -86,4 +86,84 @@ describe('api client', () => {
     )
     await expect(api.register({})).rejects.toThrow('email is not valid, password too weak')
   })
+
+  it('falls back to a generic message when no detail is present', async () => {
+    mockFetch(500, {}, false)
+    await expect(api.me()).rejects.toThrow('Request failed (500)')
+  })
+
+  it('builds history queries without params', async () => {
+    mockFetch(200, { items: [] })
+    await api.getHistory()
+    expect(global.fetch.mock.calls[0][0]).toContain('/api/history')
+  })
+
+  it('covers the remaining read endpoints', async () => {
+    const calls = [
+      [() => api.listSubmissions(5), '/api/news/history?limit=5'],
+      [() => api.listSubmissions(), '/api/news/history?limit=20'],
+      [() => api.getSubmission('TL-1'), '/api/news/TL-1'],
+      [() => api.modelInfo(), '/api/ai/model-info'],
+      [() => api.getVerification('TL-1'), '/api/verification/TL-1'],
+      [() => api.getEvidence('TL-1'), '/api/verification/TL-1/evidence'],
+      [() => api.listSources(), '/api/sources'],
+      [() => api.getTrustScore('TL-1'), '/api/trust-score/TL-1'],
+      [() => api.getExplanation('TL-1'), '/api/explanation/TL-1'],
+      [() => api.getUserDashboard(), '/api/dashboard/user'],
+      [() => api.getUserStatistics(), '/api/dashboard/user/statistics'],
+      [() => api.getAdminDashboard(), '/api/dashboard/admin'],
+      [() => api.getAdminStatistics(), '/api/dashboard/admin/statistics'],
+      [() => api.getHistoryDetail('TL-1'), '/api/history/TL-1'],
+      [() => api.listUsers(), '/api/users'],
+      [() => api.healthDb(), '/api/health/db'],
+      [() => api.getHistory({ prediction: 'REAL' }), '/api/history?prediction=REAL'],
+      [() => api.getHistory({ prediction: 'REAL', search: '', limit: 20 }), '/api/history?prediction=REAL&limit=20'],
+      [() => api.getHistory({}), '/api/history'],
+    ]
+    for (const [invoke, url] of calls) {
+      mockFetch(200, { ok: true })
+      await invoke()
+      expect(global.fetch).toHaveBeenCalledTimes(1)
+      expect(global.fetch.mock.calls[0][0]).toContain(url)
+      const options = global.fetch.mock.calls[0][1] ?? {}
+      expect(options.method ?? 'GET').toBe('GET')
+    }
+  })
+
+  it('covers the remaining write endpoints', async () => {
+    mockFetch(201, { submission_id: 'TL-1' })
+    await api.submitText('some news text content')
+    expect(global.fetch.mock.calls[0][0]).toContain('/api/news/submit')
+    expect(global.fetch.mock.calls[0][1]).toMatchObject({ method: 'POST' })
+
+    mockFetch(201, {})
+    await api.submitUrl('https://example.com/news')
+    expect(global.fetch.mock.calls[0][0]).toContain('/api/news/submit-url')
+    expect(global.fetch.mock.calls[0][1]).toMatchObject({ method: 'POST' })
+
+    mockFetch(200, {})
+    await api.updateMe({ name: 'X' })
+    expect(global.fetch.mock.calls[0][0]).toContain('/api/users/me')
+    expect(global.fetch.mock.calls[0][1]).toMatchObject({ method: 'PUT' })
+
+    mockFetch(204)
+    expect(await api.deleteSubmission('TL-1')).toBeNull()
+    expect(global.fetch.mock.calls[0][0]).toContain('/api/news/TL-1')
+    expect(global.fetch.mock.calls[0][1]).toMatchObject({ method: 'DELETE' })
+
+    mockFetch(200, {})
+    await api.runVerification('TL-1')
+    expect(global.fetch.mock.calls[0][0]).toContain('/api/verification/TL-1')
+    expect(global.fetch.mock.calls[0][1]).toMatchObject({ method: 'POST' })
+
+    mockFetch(200, {})
+    await api.runTrustScore('TL-1')
+    expect(global.fetch.mock.calls[0][0]).toContain('/api/trust-score/TL-1')
+    expect(global.fetch.mock.calls[0][1]).toMatchObject({ method: 'POST' })
+
+    mockFetch(200, {})
+    await api.runExplanation('TL-1')
+    expect(global.fetch.mock.calls[0][0]).toContain('/api/explanation/TL-1')
+    expect(global.fetch.mock.calls[0][1]).toMatchObject({ method: 'POST' })
+  })
 })

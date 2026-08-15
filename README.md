@@ -95,7 +95,8 @@ python tools\train_distilbert.py    # DistilBERT (GPU recommended)
   MongoDB). CI gates coverage at >= 85%.
 - AI engine: 14 unit tests (`pytest ai-engine/tests -q`; no DB or model
   artifacts needed).
-- Frontend: 46 tests, oxlint, production build (all in CI).
+- Frontend: 107 tests, 93% coverage, oxlint, production build (all in CI;
+  gate >= 80% lines / >= 75% branches).
 - Ops: `deployment/scripts/smoke_test.py --base http://localhost`.
 
 ## License

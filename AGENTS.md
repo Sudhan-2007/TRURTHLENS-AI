@@ -50,7 +50,8 @@ Frontend (run from `frontend\`):
 - `npm run dev` — dev server (port 5173).
 - `npm run build` — production build.
 - `npm run lint` — oxlint.
-- `npm test` — vitest (46 tests).
+- `npm test` — vitest (107 tests; coverage gate: 93% lines, CI enforces
+  >= 80% lines / >= 75% branches via `npm run test:coverage`).
 
 AI engine:
 - `python tools\train_baseline.py` / `python tools\train_distilbert.py` — retrain

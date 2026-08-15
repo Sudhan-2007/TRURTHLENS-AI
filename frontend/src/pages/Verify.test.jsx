@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, useNavigate } from 'react-router-dom'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { api } from '../api/client'
 import Verify from './Verify'
@@ -25,6 +25,10 @@ function renderVerify() {
 }
 
 describe('Verify', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('rejects text shorter than the minimum', () => {
     renderVerify()
     fireEvent.change(screen.getByLabelText('News text'), { target: { value: 'too short' } })
@@ -77,5 +81,49 @@ describe('Verify', () => {
     fireEvent.click(screen.getByText('Verify'))
     await waitFor(() => expect(api.submitUrl).toHaveBeenCalledTimes(1))
     expect(navigate).toHaveBeenCalledWith('/result/TL-000000000002-ABC', { replace: true })
+  })
+
+  it('rejects a URL longer than the maximum', () => {
+    renderVerify()
+    fireEvent.click(screen.getByText('News URL'))
+    fireEvent.change(screen.getByLabelText('News URL'), {
+      target: { value: 'https://example.com/' + 'a'.repeat(2048) },
+    })
+    fireEvent.click(screen.getByText('Verify'))
+    expect(screen.getByText('URL must be at most 2048 characters.')).toBeInTheDocument()
+    expect(api.submitUrl).not.toHaveBeenCalled()
+  })
+
+  it('clears the form and error with the Clear button', () => {
+    renderVerify()
+    fireEvent.change(screen.getByLabelText('News text'), {
+      target: { value: 'Some claim text that will be cleared' },
+    })
+    fireEvent.change(screen.getByLabelText('News text'), { target: { value: 'short' } })
+    fireEvent.click(screen.getByText('Verify'))
+    expect(screen.getByText(/at least 20 characters/)).toBeInTheDocument()
+    fireEvent.click(screen.getByText('Clear'))
+    expect(screen.getByLabelText('News text').value).toBe('')
+    expect(screen.queryByText(/at least 20 characters/)).not.toBeInTheDocument()
+  })
+
+  it('shows the error returned by the api', async () => {
+    api.submitText.mockRejectedValue(new Error('Model unavailable'))
+    renderVerify()
+    fireEvent.change(screen.getByLabelText('News text'), {
+      target: { value: 'A sufficiently long news claim to submit.' },
+    })
+    fireEvent.click(screen.getByText('Verify'))
+    await waitFor(() => expect(screen.getByText('Model unavailable')).toBeInTheDocument())
+  })
+
+  it('returns to the text tab without keeping the url error', () => {
+    renderVerify()
+    fireEvent.click(screen.getByText('News URL'))
+    fireEvent.change(screen.getByLabelText('News URL'), { target: { value: 'bad' } })
+    fireEvent.click(screen.getByText('Verify'))
+    expect(screen.getByText(/Enter a valid URL/)).toBeInTheDocument()
+    fireEvent.click(screen.getByText('News text'))
+    expect(screen.queryByText(/Enter a valid URL/)).not.toBeInTheDocument()
   })
 })
