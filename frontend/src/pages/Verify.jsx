@@ -52,10 +52,14 @@ export default function Verify() {
 
     setLoading(true)
     try {
-      const result =
-        inputType === 'text'
-          ? await api.submitText(content)
-          : await api.submitUrl(url)
+      let result;
+      if (inputType === 'text') {
+        result = await api.submitText(content)
+      } else if (inputType === 'url') {
+        result = await api.submitUrl(url)
+      } else if (inputType === 'account') {
+        result = await api.submitAccount(url)
+      }
       navigate(`/result/${result.submission_id}`, { replace: true })
     } catch (err) {
       setError(err.message)
@@ -92,6 +96,15 @@ export default function Verify() {
             >
               News URL
             </button>
+            <button
+              type="button"
+              onClick={() => { setInputType('account'); setError('') }}
+              className={`rounded-md px-4 py-1.5 text-sm font-semibold transition ${
+                inputType === 'account' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Social Media Account
+            </button>
           </div>
 
           {error && <p className="alert-error">{error}</p>}
@@ -115,7 +128,7 @@ export default function Verify() {
                   / {TEXT_MAX}
                 </div>
               </div>
-            ) : (
+            ) : inputType === 'url' ? (
               <div>
                 <label className="label" htmlFor="url">News URL</label>
                 <input
@@ -124,6 +137,19 @@ export default function Verify() {
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="https://example.com/news/article"
+                  className="input mt-2"
+                />
+                <div className="mt-1 text-right text-xs text-slate-400">{url.length} / {URL_MAX}</div>
+              </div>
+            ) : (
+              <div>
+                <label className="label" htmlFor="account">Social Media Profile URL</label>
+                <input
+                  id="account"
+                  type="url"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="https://instagram.com/username"
                   className="input mt-2"
                 />
                 <div className="mt-1 text-right text-xs text-slate-400">{url.length} / {URL_MAX}</div>

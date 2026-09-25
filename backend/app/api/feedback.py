@@ -7,9 +7,11 @@ from ..schemas.feedback import FeedbackCreate, FeedbackResponse
 
 router = APIRouter(prefix="/api/feedback", tags=["feedback"])
 
+
 class StatsResponse(BaseModel):
     total_feedback: int
     average_rating: float
+
 
 @router.post("", response_model=FeedbackResponse, status_code=status.HTTP_201_CREATED)
 async def submit_feedback(
@@ -22,11 +24,11 @@ async def submit_feedback(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Submission not found",
         )
-        
+
     user_id = str(user["_id"]) if user else None
-    
+
     doc = await feedback_repository.save_feedback(user_id, feedback)
-    
+
     return FeedbackResponse(
         id=str(doc["_id"]),
         submission_id=doc["submission_id"],
@@ -34,8 +36,9 @@ async def submit_feedback(
         comments=doc.get("comments"),
         alternative_sources=doc.get("alternative_sources"),
         user_id=str(doc["user_id"]) if doc.get("user_id") else None,
-        created_at=doc["created_at"]
+        created_at=doc["created_at"],
     )
+
 
 @router.get("/stats", response_model=StatsResponse)
 async def get_stats():

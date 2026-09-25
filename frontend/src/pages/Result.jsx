@@ -239,6 +239,21 @@ export default function Result() {
     }
   }
 
+  const handleShareToX = () => {
+    const verdict = submission?.verification_result?.verdict === 'REAL' ? 'REAL' : 'FAKE'
+    const confidence = Math.round((submission?.verification_result?.confidence || 0) * 100)
+    
+    let text = `I just analyzed a news claim on TruthLens AI! 🔍\n\n`
+    if (submission?.verification_result) {
+      text = `TruthLens AI analyzed this claim and found it to be ${verdict} with ${confidence}% confidence! 🔍\n\n`
+    }
+    
+    const url = window.location.href
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`
+    
+    window.open(twitterUrl, '_blank')
+  }
+
   if (loading && !submission) {
     return (
       <div className="px-4 py-20 text-center text-slate-400">
@@ -297,7 +312,9 @@ export default function Result() {
           </div>
 
           <div>
-            <p className="label">{submission.input_type === 'text' ? 'News text' : 'News URL'}</p>
+            <p className="label">
+              {submission.input_type === 'text' ? 'News text' : submission.input_type === 'account' ? 'Social Media Profile' : 'News URL'}
+            </p>
             {submission.input_type === 'text' ? (
               <p className="mt-1 whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm leading-relaxed text-slate-700">
                 {submission.content}
@@ -372,12 +389,16 @@ export default function Result() {
         </div>
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
-          <Link to="/verify" className="btn-primary">Verify another</Link>
+          <button onClick={handleShareToX} className="btn-primary bg-black hover:bg-gray-800 border-none flex items-center gap-2">
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 fill-current"><g><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 22.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></g></svg>
+            Share on X
+          </button>
+          <Link to="/verify" className="btn-secondary">Verify another</Link>
           <button onClick={() => setIsFeedbackOpen(true)} className="btn-secondary">
-            Report Issue / Provide Feedback
+            Report Issue
           </button>
           <button onClick={handleDelete} className="btn-secondary text-red-600 hover:bg-red-50">
-            Delete submission
+            Delete
           </button>
         </div>
       </div>

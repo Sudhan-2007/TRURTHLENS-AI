@@ -5,6 +5,7 @@ class QuickVerifyRequest(BaseModel):
     url: str | None = None
     text: str | None = None
 
+
 class QuickVerifyResponse(BaseModel):
     score: float | None
     classification: str

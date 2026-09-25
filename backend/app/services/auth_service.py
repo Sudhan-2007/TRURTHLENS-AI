@@ -93,3 +93,55 @@ async def update_user(user_id: str, payload: UserUpdate) -> dict | None:
 
     await users.update_one({"_id": user["_id"]}, {"$set": updates})
     return await get_user_by_id(user_id)
+
+
+async def generate_password_reset_token(email: str) -> str | None:
+    import secrets
+    from datetime import timedelta
+
+    user = await get_user_by_email(email)
+    if user is None:
+        return None
+
+    token = secrets.token_urlsafe(32)
+    expires_at = utcnow() + timedelta(hours=1)
+
+    await get_users_collection().update_one(
+        {"_id": user["_id"]},
+        {"$set": {"reset_token": token, "reset_token_exp": expires_at}},
+    )
+
+    # In a real app, this is where you would send the email.
+    # For now, we simulate by logging to the console.
+    print("--- PASSWORD RESET SIMULATION ---")
+    print(f"To reset password for {email}, use token: {token}")
+    print(f"Or visit: http://localhost:5173/reset-password/{token}")
+    print("---------------------------------")
+
+    return token
+
+
+async def reset_password_with_token(token: str, new_password: str) -> bool:
+    users = get_users_collection()
+    user = await users.find_one({"reset_token": token})
+
+    if not user:
+        return False
+
+    # Check if token is expired
+    exp = user.get("reset_token_exp")
+    if not exp or exp.replace(tzinfo=UTC) < utcnow().replace(tzinfo=UTC):
+        return False
+
+    # Update password and clear token
+    await users.update_one(
+        {"_id": user["_id"]},
+        {
+            "$set": {
+                "password_hash": hash_password(new_password),
+                "updated_at": utcnow(),
+            },
+            "$unset": {"reset_token": "", "reset_token_exp": ""},
+        },
+    )
+    return True

@@ -10,6 +10,8 @@ from ..utils.validators import validate_text, validate_url
 class InputType(str, Enum):
     TEXT = "text"
     URL = "url"
+    IMAGE = "image"
+    ACCOUNT = "account"
 
 
 class NewsStatus(str, Enum):
@@ -31,6 +33,26 @@ class NewsSubmitText(BaseModel):
 
 class NewsSubmitUrl(BaseModel):
     input_type: Literal["url"] = "url"
+    url: str
+
+    @field_validator("url")
+    @classmethod
+    def check_url(cls, value: str) -> str:
+        return validate_url(value)
+
+
+class NewsSubmitImage(BaseModel):
+    input_type: Literal["image"] = "image"
+    url: str
+
+    @field_validator("url")
+    @classmethod
+    def check_url(cls, value: str) -> str:
+        return validate_url(value)
+
+
+class NewsSubmitAccount(BaseModel):
+    input_type: Literal["account"] = "account"
     url: str
 
     @field_validator("url")

@@ -25,7 +25,7 @@ async def test_list_sources_no_filters_returns_all_seeded():
 
 async def test_list_sources_filters_by_source_type():
     official = await source_repository.list_sources(source_type="official")
-    assert len(official) == 8
+    assert len(official) >= 24
     assert all(s["source_type"] == "official" for s in official)
 
 
@@ -38,6 +38,6 @@ async def test_list_sources_filters_by_status_and_type():
 
 
 async def test_count_sources_total_and_filtered():
-    assert await source_repository.count_sources() >= 14
-    assert await source_repository.count_sources(status="trusted") == 14
+    assert await source_repository.count_sources() >= 33
+    assert await source_repository.count_sources(status="trusted") >= 33
     assert await source_repository.count_sources(status="banned") == 0

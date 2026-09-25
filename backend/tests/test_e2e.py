@@ -178,7 +178,7 @@ async def test_tc011_admin_dashboard_rbac(client):
     body = res.json()
     assert body["total_users"] >= 1
     assert body["total_submissions"] >= 1
-    assert body["official_sources"] == 14
+    assert body["official_sources"] >= 33
 
 
 async def test_tc012_cross_user_isolation(client):

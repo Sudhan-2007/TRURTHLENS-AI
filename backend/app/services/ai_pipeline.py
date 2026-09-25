@@ -1,6 +1,5 @@
 import logging
 
-from ..models.news import utcnow
 from ..repositories import news_repository
 from ..schemas.news import NewsStatus
 from . import ai_service
@@ -17,12 +16,25 @@ async def run_pipeline(submission_id: str) -> None:
         if submission is None:
             return
 
-        content = (submission.get("content") or "").strip()
-        if not content and submission.get("url"):
-            content = await ai_service.extract_text_from_url(submission["url"])
+        if submission.get("input_type") == "account":
+            result = ai_service.analyze_account(submission["url"])
+        else:
+            # If a URL is provided, extract content and verify source
+            # Load article content if provided, otherwise empty string
+            content = (submission.get("content") or "").strip()
+            url_verified = False
+            if submission.get("url"):
+                try:
+                    url_verified = ai_service.verify_url(submission["url"])
+                except Exception:  # noqa: BLE001
+                    url_verified = False
 
-        result = ai_service.analyze_text(content)
-        result["analyzed_at"] = utcnow().isoformat()
+                if not content:
+                    content = await ai_service.extract_text_from_url(submission["url"])
+
+            result = ai_service.analyze_text(content)
+            # Append URL verification flag to result
+            result["url_verified"] = url_verified
 
         await ai_service.save_prediction(submission, result)
         await news_repository.update_status(

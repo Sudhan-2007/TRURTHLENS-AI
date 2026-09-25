@@ -1,6 +1,6 @@
 // Same-origin by default (production behind nginx). Local dev sets
 // VITE_API_BASE_URL=http://localhost:8000 in frontend/.env.
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
 function getToken() {
   return localStorage.getItem('token')
@@ -43,6 +43,7 @@ export const api = {
   updateMe: (payload) => request('/api/users/me', { method: 'PUT', body: JSON.stringify(payload) }),
   submitText: (content) => request('/api/news/submit', { method: 'POST', body: JSON.stringify({ input_type: 'text', content }) }),
   submitUrl: (url) => request('/api/news/submit-url', { method: 'POST', body: JSON.stringify({ input_type: 'url', url }) }),
+  submitAccount: (url) => request('/api/news/submit-account', { method: 'POST', body: JSON.stringify({ input_type: 'account', url }) }),
   getSubmission: (submissionId) => request(`/api/news/${submissionId}`),
   deleteSubmission: (submissionId) => request(`/api/news/${submissionId}`, { method: 'DELETE' }),
   listSubmissions: (limit = 20) => request(`/api/news/history?limit=${limit}`),
@@ -70,4 +71,8 @@ export const api = {
   getHistoryDetail: (submissionId) => request(`/api/history/${submissionId}`),
   listUsers: () => request('/api/users'),
   healthDb: () => request('/api/health/db'),
+  forgotPassword: (email) => request('/api/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+  resetPassword: (token, new_password) => request('/api/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, new_password }) }),
+
 }
+export const fetchApi = request

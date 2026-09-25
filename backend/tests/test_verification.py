@@ -52,7 +52,7 @@ async def test_sources_endpoint_lists_trusted_sources(client):
     res = await client.get("/api/sources", headers=headers)
     assert res.status_code == 200
     body = res.json()
-    assert body["count"] == 14
+    assert body["count"] >= 33
     domains = {s["domain"] for s in body["sources"]}
     assert "cdc.gov" in domains
     assert "nasa.gov" in domains

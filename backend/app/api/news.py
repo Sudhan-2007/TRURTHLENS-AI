@@ -3,7 +3,13 @@ from fastapi import APIRouter, BackgroundTasks, Depends, status
 from ..middleware.auth import get_current_user
 from ..middleware.rate_limit import rate_limit_submit
 from ..models.news import serialize_news
-from ..schemas.news import NewsOut, NewsStatus, NewsSubmitText, NewsSubmitUrl
+from ..schemas.news import (
+    NewsOut,
+    NewsStatus,
+    NewsSubmitAccount,
+    NewsSubmitText,
+    NewsSubmitUrl,
+)
 from ..services import ai_pipeline, news_service
 
 router = APIRouter(prefix="/api/news", tags=["news"])
@@ -40,6 +46,25 @@ async def submit_url(
         "submission_id": submission["submission_id"],
         "status": NewsStatus.SUBMITTED.value,
         "message": "URL submitted successfully",
+    }
+
+
+@router.post(
+    "/submit-account", status_code=status.HTTP_201_CREATED, response_model=dict
+)
+async def submit_account(
+    payload: NewsSubmitAccount,
+    background_tasks: BackgroundTasks,
+    user: dict = Depends(rate_limit_submit),
+):
+    submission = await news_service.create_submission(
+        user, input_type="account", url=payload.url
+    )
+    background_tasks.add_task(ai_pipeline.run_pipeline, submission["submission_id"])
+    return {
+        "submission_id": submission["submission_id"],
+        "status": NewsStatus.SUBMITTED.value,
+        "message": "Account URL submitted successfully",
     }
 
 

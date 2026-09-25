@@ -90,7 +90,7 @@ describe('Result', () => {
     )
     expect(screen.getByText(/Likely REAL/)).toBeInTheDocument()
     expect(screen.getByText('SUPPORTED')).toBeInTheDocument()
-    expect(screen.getByText('Delete submission')).toBeInTheDocument()
+    expect(screen.getByText('Delete')).toBeInTheDocument()
   })
 
   it('runs verification when the button is clicked', async () => {
@@ -117,9 +117,9 @@ describe('Result', () => {
 
     renderResult()
     await waitFor(() =>
-      expect(screen.getByText('Delete submission')).toBeInTheDocument(),
+      expect(screen.getByText('Delete')).toBeInTheDocument(),
     )
-    fireEvent.click(screen.getByText('Delete submission'))
+    fireEvent.click(screen.getByText('Delete'))
     await waitFor(() => expect(api.deleteSubmission).toHaveBeenCalledWith('TL-1'))
   })
 })

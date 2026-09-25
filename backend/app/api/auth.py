@@ -44,3 +44,32 @@ async def logout(
     payload = decode_access_token(credentials.credentials)
     exp = datetime.fromtimestamp(payload["exp"], tz=UTC)
     await auth_service.blacklist_token(payload["jti"], exp)
+
+
+from ..schemas.auth import ForgotPasswordRequest, ResetPasswordRequest
+
+
+@router.post("/forgot-password", status_code=status.HTTP_200_OK)
+async def forgot_password(payload: ForgotPasswordRequest):
+    token = await auth_service.generate_password_reset_token(payload.email)
+    if not token:
+        # Avoid user enumeration by returning success even if email not found
+        return {
+            "message": "If that email is registered, a reset link has been logged (simulated)."
+        }
+    return {
+        "message": "If that email is registered, a reset link has been logged (simulated)."
+    }
+
+
+@router.post("/reset-password", status_code=status.HTTP_200_OK)
+async def reset_password(payload: ResetPasswordRequest):
+    success = await auth_service.reset_password_with_token(
+        payload.token, payload.new_password
+    )
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token.",
+        )
+    return {"message": "Password has been reset successfully."}

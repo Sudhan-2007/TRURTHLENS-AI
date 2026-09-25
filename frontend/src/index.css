@@ -2,24 +2,24 @@
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-sm bg-[#003366] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#002244] disabled:opacity-50;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50;
+    @apply inline-flex items-center justify-center rounded-sm border-2 border-[#003366] bg-white px-4 py-2 text-sm font-bold text-[#003366] transition hover:bg-slate-50;
   }
   .input {
-    @apply mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500;
+    @apply mt-1 w-full rounded-sm border-2 border-slate-400 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-[#003366] focus:ring-1 focus:ring-[#003366];
   }
   .label {
-    @apply block text-sm font-medium text-slate-700;
+    @apply block text-sm font-bold text-slate-900;
   }
   .card {
-    @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+    @apply rounded-sm border border-slate-300 bg-white shadow-sm;
   }
   .alert-error {
-    @apply mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700;
+    @apply mt-4 rounded-sm border-l-4 border-red-700 bg-red-50 px-4 py-3 text-sm text-red-900 font-medium;
   }
   .alert-success {
-    @apply mt-4 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700;
+    @apply mt-4 rounded-sm border-l-4 border-green-700 bg-green-50 px-4 py-3 text-sm text-green-900 font-medium;
   }
 }

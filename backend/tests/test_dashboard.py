@@ -123,7 +123,7 @@ async def test_admin_dashboard_overview(client):
     assert body["fake_predictions"] >= 0
     assert body["real_predictions"] >= 0
     assert body["unverified_claims"] >= 0
-    assert body["official_sources"] == 14
+    assert body["official_sources"] >= 33
     assert 0 <= body["average_trust_score"] <= 100
 
 

@@ -16,7 +16,9 @@ async def verify_claims(claims: list[str]) -> dict:
     candidates = await evidence_service.search_internal([{"text": c} for c in claims])
     return {
         "evidence_count": len(candidates),
-        "verification_status": "Unverified" if not candidates else "Partially Supported",
+        "verification_status": "Unverified"
+        if not candidates
+        else "Partially Supported",
     }
 
 
