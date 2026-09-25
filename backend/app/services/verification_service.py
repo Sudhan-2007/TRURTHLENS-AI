@@ -1,7 +1,9 @@
+from urllib.parse import urlparse
+
 from ..models.news import utcnow
 from ..repositories import verification_repository
 from ..schemas.verification import VerificationStatus
-from . import claim_service, evidence_service, similarity_service
+from . import claim_service, evidence_service, similarity_service, source_service
 
 SIMILARITY_CONFIRM = 0.55
 SIMILARITY_PARTIAL = 0.30
@@ -114,6 +116,30 @@ async def verify_submission(submission: dict, prediction: dict, content: str) ->
     official_sources = {
         item["source_domain"] for item in items if item.get("source_domain")
     }
+
+    # Check submitted URL for official domain source
+    sub_url = submission.get("url")
+    if sub_url:
+        sub_domain = urlparse(sub_url).netloc.lower()
+        if source_service.is_approved_domain(sub_domain):
+            official_sources.add(sub_domain)
+            if status == VerificationStatus.UNVERIFIED.value:
+                status = VerificationStatus.SUPPORTED.value
+                confidence = max(confidence, 0.90)
+
+    # Check search results from prediction
+    search_results = prediction.get("search_results") if prediction else []
+    if search_results:
+        found_approved = False
+        for sr in search_results:
+            sr_url = sr.get("url", "")
+            sr_domain = urlparse(sr_url).netloc.lower() if sr_url else ""
+            if sr_domain and source_service.is_approved_domain(sr_domain):
+                official_sources.add(sr_domain)
+                found_approved = True
+        if found_approved and status == VerificationStatus.UNVERIFIED.value:
+            status = VerificationStatus.SUPPORTED.value
+            confidence = max(confidence, 0.85)
 
     result = {
         "submission_id": submission["submission_id"],

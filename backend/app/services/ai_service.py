@@ -352,9 +352,9 @@ def analyze_account(url: str) -> dict:
             + " ".join(reasons)
         )
     else:
-        verdict = "REAL"
-        confidence = 0.70
-        summary = "[No API Key - Running Heuristics Only] This account does not exhibit common automated or spam-like patterns based on profile structure. Note: A deeper behavioral analysis is required for full verification."
+        verdict = "UNVERIFIED"
+        confidence = 0.50
+        summary = "[No API Key - Running Heuristics Only] Social media user accounts and posts are unverified by default. Claim-level fact-checking against official news sources is required for full verification."
 
     return {
         "verdict": verdict,
@@ -400,13 +400,10 @@ async def extract_text_from_url(url: str) -> str:
 
 
 def verify_url(url: str) -> bool:
-    """Very basic verification: consider .gov or .edu domains as official sources.
-    Returns True if the URL's netloc ends with .gov or .edu, else False.
-    """
-    from urllib.parse import urlparse
+    """Verify if the URL belongs to an official government/educational domain or trusted news source."""
+    from . import source_service
 
-    netloc = urlparse(url).netloc.lower()
-    return netloc.endswith((".gov", ".edu"))
+    return source_service.is_approved_domain(url)
 
 
 async def save_prediction(submission: dict, result: dict) -> None:

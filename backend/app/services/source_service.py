@@ -6,6 +6,32 @@ from ..schemas.verification import SourceStatus
 
 _APPROVED_DOMAINS: set[str] = set()
 
+DEFAULT_TRUSTED_DOMAINS: set[str] = {
+    "reuters.com",
+    "apnews.com",
+    "bbc.com",
+    "bbc.co.uk",
+    "pib.gov.in",
+    "afp.com",
+    "bloomberg.com",
+    "thehindu.com",
+    "indianexpress.com",
+    "timesofindia.indiatimes.com",
+    "ndtv.com",
+    "nytimes.com",
+    "wsj.com",
+    "washingtonpost.com",
+    "cbsnews.com",
+    "nbcnews.com",
+    "cnn.com",
+    "npr.org",
+    "factcheck.org",
+    "snopes.com",
+    "fullfact.org",
+    "altnews.in",
+    "politifact.com",
+}
+
 
 def set_approved_domains(domains: list[str]) -> None:
     _APPROVED_DOMAINS.clear()
@@ -13,14 +39,19 @@ def set_approved_domains(domains: list[str]) -> None:
 
 
 def is_approved_domain(url: str) -> bool:
+    if not url:
+        return False
+    if "://" not in url:
+        url = "https://" + url
     parsed = urlparse(url)
     domain = parsed.hostname
     if not domain:
         return False
     domain = domain.lower()
-    if parsed.scheme not in ("http", "https"):
-        return False
-    for approved in _APPROVED_DOMAINS:
+    if domain.endswith((".gov", ".edu", ".gov.in", ".gov.uk", ".mil")):
+        return True
+    all_approved = _APPROVED_DOMAINS | DEFAULT_TRUSTED_DOMAINS
+    for approved in all_approved:
         if domain == approved or domain.endswith("." + approved):
             return True
     return False

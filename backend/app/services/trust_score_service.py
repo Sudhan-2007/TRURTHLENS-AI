@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 from ..models.news import utcnow
 from ..repositories import trust_score_repository
 from . import (
@@ -34,6 +36,10 @@ def _explain(components: dict, final: int, level: str) -> str:
 async def calculate_trust_score(
     submission: dict, prediction: dict, verification: dict, evidence_items: list[dict]
 ) -> dict:
+    sub_domain = None
+    if submission.get("url"):
+        sub_domain = urlparse(submission["url"]).netloc.lower()
+
     components = {
         "ai_assessment": score_calculator.ai_assessment(prediction),
         "official_verification": score_calculator.verification_score(verification),
@@ -41,7 +47,7 @@ async def calculate_trust_score(
             verification, evidence_items
         ),
         "source_reliability": await source_reliability_service.source_reliability(
-            evidence_items
+            evidence_items, submission_domain=sub_domain
         ),
         "semantic_similarity": evidence_score_service.semantic_similarity(verification),
     }
